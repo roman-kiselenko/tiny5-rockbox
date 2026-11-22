@@ -46,10 +46,13 @@
 #define ST_COL     (UI_MARGIN + 66)   /* where the values start */
 #define ST_BAR_H   6                  /* the CPU load bar */
 
-/* bytes as "16.4 MB", "912 KB" or "512 B" */
+/* bytes as "31.0 GB", "16.4 MB", "912 KB" or "512 B" */
 static void fmt_size(char *buf, size_t len, unsigned long long b)
 {
-    if (b >= 1024 * 1024)
+    if (b >= 1024ULL * 1024 * 1024)
+        snprintf(buf, len, "%llu.%llu GB", b / (1024ULL * 1024 * 1024),
+                 (b * 10 / (1024ULL * 1024 * 1024)) % 10);
+    else if (b >= 1024 * 1024)
         snprintf(buf, len, "%llu.%llu MB", b / (1024 * 1024),
                  (b * 10 / (1024 * 1024)) % 10);
     else if (b >= 1024)
@@ -182,7 +185,7 @@ static void draw(struct viewport *vp)
         /* the volume name comes decorated as "<microSD0>" */
         if (name[0] == '<')
             memmove(name, name + 1, strlen(name) - 1);
-        if (name[strlen(name) - 1] == '>')
+        while (name[0] && name[strlen(name) - 1] == '>')
             name[strlen(name) - 1] = '\0';
 
         fmt_size(val, sizeof val, (unsigned long long)size * 512);
