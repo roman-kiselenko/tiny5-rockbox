@@ -134,26 +134,42 @@ static int draw_icons(int x, int font, const struct ui_status *st)
 }
 
 /* The battery as a number, terminal style: "37%", "+" when it is taking
- * charge, red when low, "--%" when there is no reading. Its right edge is
- * at x_right; returns the width it took. */
-static int draw_battery(int x_right, int percent, bool charging)
+ * charge, red when low, "--%" when there is no reading, drawn with its
+ * right edge at x_right. */
+static void draw_battery(int x_right, int w, const char *text, int percent,
+                         bool charging)
 {
-    const int font = ui_font(UI_FONT_SMALL);
-    char buf[16];
-
-    if (percent < 0)
-        snprintf(buf, sizeof buf, "--%%");
-    else
-        snprintf(buf, sizeof buf, "%d%%", percent > 100 ? 100 : percent);
-    if (charging)
-        strcat(buf, "+");
-
-    int w = ui_text_width(font, buf);
-    ui_text_vcenter(x_right - w, 0, UI_STATUS_H, font,
+    ui_text_vcenter(x_right - w, 0, UI_STATUS_H, ui_font(UI_FONT_SMALL),
                     percent >= 0 && percent <= BATT_LOW && !charging ?
                         BATT_RED : UI_COL_STATUS,
-                    buf, 0, -1);
-    return w;
+                    text, 0, -1);
+}
+
+/* fills buf and returns its width; "--%" when there is no reading */
+static int battery_text(char *buf, size_t size, const struct ui_status *st)
+{
+    if (st->battery < 0)
+        snprintf(buf, size, "--%%");
+    else
+        snprintf(buf, size, "%d%%", st->battery > 100 ? 100 : st->battery);
+    if (st->charging)
+        strcat(buf, "+");
+    return ui_text_width(ui_font(UI_FONT_SMALL), buf);
+}
+
+/* the time, "14:41" or "2:41 PM"; 0 when the clock is off */
+static int clock_text(char *buf, size_t size, const struct ui_status *st)
+{
+    if (!st->time)
+        return 0;
+
+    int h = st->time->tm_hour, m = st->time->tm_min;
+    if (st->clock_24h)
+        snprintf(buf, size, "%02d:%02d", h, m);
+    else
+        snprintf(buf, size, "%d:%02d %s",
+                 (h % 12) ? h % 12 : 12, m, h < 12 ? "AM" : "PM");
+    return ui_text_width(ui_font(UI_FONT_SMALL), buf);
 }
 
 void ui_status_draw(const struct ui_status *st)
@@ -180,37 +196,50 @@ void ui_status_draw(const struct ui_status *st)
 
     const bool titled = st->title && st->title[0];
     int icons = icons_width(font, st);
+    char clock[16], batt[16];
+    int clock_w = clock_text(clock, sizeof clock, st);
+    int batt_w = st->battery_visible ? battery_text(batt, sizeof batt, st) : 0;
 
     if (titled)
     {
-        /* the iPod's layout: the screen's name left, the icons and the
-           battery on the right */
-        int x = vp->width - UI_MARGIN;
-        if (st->battery_visible)
-            x -= draw_battery(x, st->battery, st->charging) + ICON_GAP;
+        /* the screen's name left, the clock in the middle, the icons and
+           the battery on the right */
+        int right = vp->width - UI_MARGIN;   /* the battery's right edge */
+        int block = icons + batt_w + (icons && batt_w ? ICON_GAP : 0);
+        int room = right - block;           /* the free space ends here */
+
+        /* the clock is centred in the bar as long as the title still reads
+           beside it; otherwise it tucks in against the icons */
+        int cx = room - clock_w;
+        if (clock_w &&
+            ui_text_width(ui_font(UI_FONT_BODY), st->title) + clock_w + 2 * ICON_GAP
+                <= room - UI_MARGIN)
+            cx = (vp->width - clock_w) / 2;
+        cx = MAX(cx, UI_MARGIN);
+
+        if (batt_w)
+            draw_battery(right, batt_w, batt, st->battery, st->charging);
         if (icons)
-            draw_icons(x - icons, font, st);
+            draw_icons(right - block, font, st);
+        if (clock_w)
+            ui_text_vcenter(cx, 0, UI_STATUS_H, font, UI_COL_STATUS, clock, 0,
+                            -1);
         ui_text_vcenter(UI_MARGIN, 0, UI_STATUS_H, ui_font(UI_FONT_BODY),
-                        UI_COL_STATUS, st->title, x - icons - ICON_GAP - UI_MARGIN,
+                        UI_COL_STATUS, st->title, MAX(0, cx - ICON_GAP - UI_MARGIN),
                         -1);
     }
     else
     {
-        /* left: the icons, the clock centred */
+        /* left: the icons, the clock centred, the battery on the right */
         if (icons)
             draw_icons(UI_MARGIN, font, st);
 
-        if (st->time)
-        {
-            char buf[16];
-            int h = st->time->tm_hour, m = st->time->tm_min;
-            if (st->clock_24h)
-                snprintf(buf, sizeof(buf), "%02d:%02d", h, m);
-            else
-                snprintf(buf, sizeof(buf), "%d:%02d %s",
-                         (h % 12) ? h % 12 : 12, m, h < 12 ? "AM" : "PM");
-            ui_text_vcenter(0, 0, UI_STATUS_H, font, UI_COL_STATUS, buf,
-                            vp->width, 0);
-        }
+        if (clock_w)
+            ui_text_vcenter((vp->width - clock_w) / 2, 0, UI_STATUS_H, font,
+                            UI_COL_STATUS, clock, 0, -1);
+
+        if (batt_w)
+            draw_battery(vp->width - UI_MARGIN, batt_w, batt, st->battery,
+                         st->charging);
     }
 }
