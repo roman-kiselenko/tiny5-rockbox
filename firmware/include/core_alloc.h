@@ -39,6 +39,7 @@ unsigned core_pin_count(int handle);
 int core_free(int handle);
 size_t core_available(void);
 size_t core_allocatable(void);
+size_t core_pool_size(void);   /* the size of the pool, used plus free */
 
 #ifdef BUFLIB_DEBUG_CHECK_VALID
 void core_check_valid(void);

@@ -159,4 +159,7 @@ static inline void storage_sleep(void) {};
 int storage_read_sectors(IF_MD(int drive,) sector_t start, int count, void* buf);
 int storage_write_sectors(IF_MD(int drive,) sector_t start, int count, const void* buf);
 
+/* Sectors read and written since boot, for the System Status screen */
+void storage_io_stats(uint64_t *read, uint64_t *written);
+
 #endif /* __STORAGE_H__ */

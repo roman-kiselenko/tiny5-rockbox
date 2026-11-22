@@ -448,9 +448,12 @@ MENUITEM_FUNCTION(debug_menu_item, 0, ID2P(LANG_DEBUG),
 MENUITEM_FUNCTION(battery_usage_item, 0, ID2P(LANG_NEWUI_VIEW_BATTERY_USAGE),
                   ui_battery_usage, NULL, Icon_NOICON);
 
+MENUITEM_FUNCTION(status_item, 0, ID2P(LANG_NEWUI_STATUS),
+                  ui_stats, NULL, Icon_NOICON);
+
 MAKE_MENU(info_menu, ID2P(LANG_SYSTEM), 0, Icon_System_menu,
           &show_info_item, &show_runtime_item, &battery_usage_item,
-          &debug_menu_item);
+          &status_item, &debug_menu_item);
 /*      INFO MENU                  */
 /***********************************/
 

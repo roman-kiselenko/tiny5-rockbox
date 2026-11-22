@@ -228,6 +228,11 @@ void ui_battery_log_init(void);
 /* System > Battery Usage: the log as a chart. Returns 1 for USB. */
 int ui_battery_usage(void);
 
+/* --- system status (scr_stats.c) --- */
+
+/* System > System Status: CPU, memory, storage and IO. Returns 1 for USB. */
+int ui_stats(void);
+
 /* --- thumbnails (ui_thumb.c) --- */
 
 #define UI_THUMB UI_ART_ROW_H /* cover size in list rows: the whole row */

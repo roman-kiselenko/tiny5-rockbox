@@ -42,11 +42,16 @@ unsigned char *audiobufend = audiobuffer + sizeof(audiobuffer);
 static int test_alloc;
 #endif
 
+/* The size of the pool, remembered at init: buflib only tracks how far it
+ * has allocated, not how much it was given. */
+static size_t core_pool;
+
 void core_allocator_init(void)
 {
     unsigned char *start = ALIGN_UP(audiobuffer, sizeof(intptr_t));
 
-    buflib_init(&core_ctx, start, audiobufend - start);
+    core_pool = (size_t)(audiobufend - start);
+    buflib_init(&core_ctx, start, core_pool);
 
 #ifdef BUFLIB_DEBUG_PRINT
     test_alloc = core_alloc(112);
@@ -77,6 +82,12 @@ size_t core_available(void)
 size_t core_allocatable(void)
 {
     return buflib_allocatable(&core_ctx);
+}
+
+/* The whole pool the core allocator was given: used plus whatever is free */
+size_t core_pool_size(void)
+{
+    return core_pool;
 }
 
 int core_free(int handle)

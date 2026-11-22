@@ -231,9 +231,19 @@ int storage_init(void)
     return rc;
 }
 
+/* Sectors touched since boot, for the System Status screen */
+static volatile uint64_t sectors_read, sectors_written;
+
+void storage_io_stats(uint64_t *read, uint64_t *written)
+{
+    *read = sectors_read;
+    *written = sectors_written;
+}
+
 int storage_read_sectors(IF_MD(int drive,) sector_t start, int count,
                          void* buf)
 {
+    sectors_read += count;
 #ifdef CONFIG_STORAGE_MULTI
     int driver=(storage_drivers[drive] & DRIVER_MASK)>>DRIVER_OFFSET;
     int ldrive=(storage_drivers[drive] & DRIVE_MASK)>>DRIVE_OFFSET;
@@ -258,6 +268,7 @@ int storage_read_sectors(IF_MD(int drive,) sector_t start, int count,
 int storage_write_sectors(IF_MD(int drive,) sector_t start, int count,
                           const void* buf)
 {
+    sectors_written += count;
 #ifdef CONFIG_STORAGE_MULTI
     int driver=(storage_drivers[drive] & DRIVER_MASK)>>DRIVER_OFFSET;
     int ldrive=(storage_drivers[drive] & DRIVE_MASK)>>DRIVE_OFFSET;

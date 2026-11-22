@@ -18,6 +18,7 @@
  *
  ****************************************************************************/
 #include <stdio.h>
+#include <stdint.h>
 #include <time.h>
 #include <stdbool.h>
 #include "debug.h"
@@ -58,6 +59,22 @@ int storage_init(void)
     return 1;
 }
 
+/* Sectors touched, for the System Status screen: the simulator emulates the
+   filesystem itself, so these stay near zero. */
+static uint64_t sectors_read, sectors_written;
+
+void storage_io_stats(uint64_t *read, uint64_t *written)
+{
+    *read = sectors_read;
+    *written = sectors_written;
+}
+
+unsigned int volume_get_cluster_size(IF_MV_NONVOID(int volume))
+{
+    IF_MV((void)volume;)
+    return 4096;
+}
+
 int storage_write_sectors(IF_MV(int drive,)
                       unsigned long start,
                       int count,
@@ -65,6 +82,8 @@ int storage_write_sectors(IF_MV(int drive,)
 {
     IF_MV((void)drive;)
     int i;
+
+    sectors_written += count;
 
     for (i=0; i<count; i++ ) {
         FILE* f;
@@ -94,6 +113,8 @@ int storage_read_sectors(IF_MV(int drive,)
     IF_MV((void)drive;)
     int i;
     size_t ret;
+
+    sectors_read += count;
 
     for (i=0; i<count; i++ ) {
         FILE* f;

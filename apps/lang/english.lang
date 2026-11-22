@@ -17823,6 +17823,20 @@
   </voice>
 </phrase>
 <phrase>
+  id: LANG_NEWUI_STATUS
+  desc: new UI: System menu entry and title of the System Status screen
+  user: core
+  <source>
+    *: "System Status"
+  </source>
+  <dest>
+    *: "System Status"
+  </dest>
+  <voice>
+    *: "System Status"
+  </voice>
+</phrase>
+<phrase>
   id: LANG_NEWUI_SINCE_CHARGE
   desc: new UI: Battery Usage, label before the running time since the last charge
   user: core
