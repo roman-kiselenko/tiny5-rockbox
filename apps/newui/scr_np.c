@@ -26,7 +26,7 @@
  *   The Beatles
  *   Abbey Road
  *   3 of 12 · shuffle
- *   128 kbps · 44.1 kHz
+ *   FLAC · 921 kbps · 44.1 kHz
  *
  *   ──────────────────────────────────
  *   0:15 ███████-------------   -6:05
@@ -56,6 +56,7 @@
 #include "ui.h"
 
 #define NP_LINE_H      UI_LINE_H     /* one line of the readout */
+#define NP_SEP         " \xc2\xb7 "  /* between the parts of a readout line */
 #define NPL_BAND_Y     (LCD_HEIGHT - UI_STATUS_H - 42) /* rule + progress */
 #define NPL_BAR_H      8
 #define OVERLAY_TICKS  (HZ * 3 / 2)
@@ -161,6 +162,26 @@ static void draw_band(struct viewport *vp, const struct mp3entry *id3,
         draw_bar(bx, by, bw, pos, len);
 }
 
+/* the file line: the codec, then bitrate and sample rate when the codec
+ * reports them */
+static void file_line(const struct mp3entry *id3, char *line, size_t size)
+{
+    const struct afmt_entry *fmt = NULL;
+
+    if (id3->codectype < AFMT_NUM_CODECS)
+        fmt = &audio_formats[id3->codectype];
+
+    int n = snprintf(line, size, "%s", fmt ? fmt->label : "");
+    n = MIN(n, (int)size - 1);
+
+    if (id3->bitrate)
+        n = MIN(n + snprintf(line + n, size - n, NP_SEP "%u kbps",
+                            id3->bitrate), (int)size - 1);
+    if (id3->frequency)
+        n = MIN(n + snprintf(line + n, size - n, NP_SEP "%.1f kHz",
+                            id3->frequency / 1000.0), (int)size - 1);
+}
+
 /* the track, one line each: title, artist, album, position, the file */
 static void draw_info(struct viewport *vp, const struct mp3entry *id3,
                       char *buf, size_t len)
@@ -196,12 +217,9 @@ static void draw_info(struct viewport *vp, const struct mp3entry *id3,
     ui_text(UI_MARGIN, y, row, UI_COL_TEXT2, line, w, -1);
     y += NP_LINE_H;
 
-    if (id3->bitrate)
-    {
-        snprintf(line, sizeof line, "%u kbps \xc2\xb7 %.1f kHz",
-                 id3->bitrate, id3->frequency / 1000.0);
+    file_line(id3, line, sizeof line);
+    if (line[0])
         ui_text(UI_MARGIN, y, row, UI_COL_MUTED, line, w, -1);
-    }
 }
 
 
