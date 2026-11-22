@@ -132,21 +132,6 @@ static void draw_edge_shadow(int h)
     }
 }
 
-/* a song is playing (not paused or stopped): Home shows its cover, else
- * the slideshow of random covers */
-static bool song_playing(void)
-{
-    int st = audio_status();
-    return (st & AUDIO_STATUS_PLAY) && !(st & AUDIO_STATUS_PAUSE);
-}
-
-/* slideshow running: Home redraws its cover often (not with the screen
-   off: nobody sees it, and it would keep the CPU busy) */
-static bool slides_running(void)
-{
-    return lcd_active() && !song_playing() && ui_slides_available();
-}
-
 static void draw_full_art(void)
 {
     struct viewport av = { .buffer = NULL, .flags = VP_DEFAULT_FLAGS };
@@ -155,11 +140,8 @@ static void draw_full_art(void)
     av.width = LCD_WIDTH - HOME_MENU_W;
     lcd_set_viewport(&av);
 
-    const struct bitmap *art = song_playing() ? ui_art_current(LCD_HEIGHT) : NULL;
-    if (!song_playing() && ui_slides_available() &&
-        ui_slides_draw(av.width, av.height))
-        ;   /* paused or stopped: the slideshow of random covers */
-    else if (art)
+    const struct bitmap *art = ui_art_current(LCD_HEIGHT);
+    if (art)
     {
         int w = MIN(art->width, av.width), h = MIN(art->height, av.height);
         ui_fill_rect(0, 0, av.width, av.height, UI_COL_BG);
@@ -176,12 +158,6 @@ static void draw_full_art(void)
     }
     draw_edge_shadow(av.height);
     lcd_update_viewport();
-}
-
-void ui_home_prepare(void)
-{
-    if (!song_playing())
-        ui_slides_prepare(LCD_WIDTH - HOME_MENU_W, LCD_HEIGHT);
 }
 
 static void draw(struct viewport *vp, const enum home_target *list, int n,
@@ -246,7 +222,7 @@ int ui_home(int *selected)
             redraw = false;
         }
 
-        int action = get_action(CONTEXT_MAINMENU, slides_running() ? HZ / 15 : HZ);
+        int action = get_action(CONTEXT_MAINMENU, HZ);
         switch (action)
         {
             case ACTION_STD_NEXT:
@@ -312,12 +288,6 @@ int ui_home(int *selected)
                    track or the play state changed (Now Playing, art) */
                 if (state_changed())
                     redraw = true;
-                else if (slides_running())
-                {
-                    struct viewport *last = lcd_set_viewport(NULL);
-                    draw_full_art();    /* the slideshow's next frame */
-                    lcd_set_viewport(last);
-                }
                 break;
             default:
                 if (default_event_handler(action) == SYS_USB_CONNECTED)

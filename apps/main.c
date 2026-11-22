@@ -221,20 +221,12 @@ static void boot_anim(void)
     long start;
 
     if (global_settings.skip_startup_anim || w != LCD_WIDTH || h != LCD_HEIGHT)
-    {
-        ui_home_prepare(); /* still before the first screen, not after */
         return;
-    }
     show_logo_boot(); /* a splash may have covered it */
     lcd_set_viewport(NULL);
-    /* Home's covers are read and decoded during the hold instead of
-     * behind a blank screen after it (retried: the database may not be
-     * ready yet; done once loaded) */
-    do
-    {
-        ui_home_prepare();
-        sleep(1);
-    } while (TIME_BEFORE(current_tick, logo_tick + 3*HZ));
+    /* the boot image holds for 3 s in all */
+    if (TIME_BEFORE(current_tick, logo_tick + 3*HZ))
+        sleep(logo_tick + 3*HZ - current_tick);
 
     start = current_tick;
     for (;;)

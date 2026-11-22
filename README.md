@@ -12,7 +12,6 @@ Based on upstream [Rockbox](https://www.rockbox.org/) (forked from commit
 ### UI
 - iPod-style look with a Dark and a Light theme, both sharing one layout.
 - Cover Flow: iPod-style album browsing by cover.
-- Home screen with a slideshow of album covers.
 - Slide transitions between screens.
 - Faster scrolling with the wheel, and a large letter shown while
   fast-scrolling through a list.

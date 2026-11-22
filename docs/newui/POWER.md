@@ -23,18 +23,17 @@ Status: **in progress.** Written 2026-10-19 from a review of the
 | # | Problem | Where | Impact |
 |---|---|---|---|
 | 1 | The CPU always runs at 1008 MHz; frequency scaling is not enabled for this target. Decoding music needs roughly 10-20% of that. | `firmware/export/config/erosqnative.h` (no `HAVE_ADJUSTABLE_CPU_FREQ`), `firmware/target/mips/ingenic_x1000/clk-x1000.c` | High |
-| 2 | Home's cover slideshow keeps rendering at 15 frames/s when the screen is off (nothing playing, backlight timed out). | `apps/newui/scr_home.c`, `apps/newui/ui_slides.c`: no `lcd_active()` check | High while left on Home |
-| 3 | Cover Flow's background cover building (JPEG decode + SD reads) also continues with the screen off. | `apps/newui/scr_coverflow.c` | Medium |
-| 4 | Every screen update busy-waits for the panel's frame (up to ~16 ms of the CPU spinning flat out) instead of sleeping. The driver says `// TODO: This may need a yield?`. | `lcd_wait()` in `firmware/target/mips/ingenic_x1000/lcd-x1000.c` | Medium during animation (Cover Flow, slideshow, scrolling) |
-| 5 | The SD controller is never idled: `storage_sleep()` / `storage_sleepnow()` are empty for SD (`//sd_sleepnow()`). Its clock runs between buffer refills. | `firmware/storage.c`, `firmware/target/mips/ingenic_x1000/msc-x1000.c` | Low-medium, all the time |
-| 6 | Bluetooth is not put into a low-power state (sniff mode) when on but paused or idle; only the 32 kHz sleep clock is set. | `apps/bluetooth/bluetooth.c`, `hci-erosqnative.c` | Medium when Bluetooth is on |
-| 7 | Settings: backlight timeout and brightness are the largest drain per minute of screen use; the database is not held in RAM, so browsing reads the card. | `apps/settings_list.c` defaults | Depends on use |
+| 2 | Cover Flow's background cover building (JPEG decode + SD reads) also continues with the screen off. | `apps/newui/scr_coverflow.c` | Medium |
+| 3 | Every screen update busy-waits for the panel's frame (up to ~16 ms of the CPU spinning flat out) instead of sleeping. The driver says `// TODO: This may need a yield?`. | `lcd_wait()` in `firmware/target/mips/ingenic_x1000/lcd-x1000.c` | Medium during animation (Cover Flow, scrolling) |
+| 4 | The SD controller is never idled: `storage_sleep()` / `storage_sleepnow()` are empty for SD (`//sd_sleepnow()`). Its clock runs between buffer refills. | `firmware/storage.c`, `firmware/target/mips/ingenic_x1000/msc-x1000.c` | Low-medium, all the time |
+| 5 | Bluetooth is not put into a low-power state (sniff mode) when on but paused or idle; only the 32 kHz sleep clock is set. | `apps/bluetooth/bluetooth.c`, `hci-erosqnative.c` | Medium when Bluetooth is on |
+| 6 | Settings: backlight timeout and brightness are the largest drain per minute of screen use; the database is not held in RAM, so browsing reads the card. | `apps/settings_list.c` defaults | Depends on use |
 
 ## Buffering options
 
 | Option | Today | Proposal | Effect |
 |---|---|---|---|
-| Audio buffer size | All RAM left over (~20-24 MB: ~10 min of 320 kbps MP3, ~3 min of FLAC) | Free ~1.5-2 MB: size the new UI's buffers (slideshow 2x115 KB, covers 16x45 KB, Cover Flow names/paths 256 KB, art 180 KB) to need and free them when their screens close; review the 2 MB plugin scratch buffer | Fewer refills, the SD wakes less often |
+| Audio buffer size | All RAM left over (~20-24 MB: ~10 min of 320 kbps MP3, ~3 min of FLAC) | Free ~1.5-2 MB: size the new UI's buffers (covers 16x45 KB, Cover Flow names/paths 256 KB, art 180 KB) to need and free them when their screens close; review the 2 MB plugin scratch buffer | Fewer refills, the SD wakes less often |
 | When refilling starts | ~1 s of audio left | Keep | Already best for flash |
 | Read chunk size | 32 KB per SD read (`BUFFERING_DEFAULT_FILECHUNK`, `apps/buffering.c`) | 128-256 KB | Fewer SD commands per refill; the card idles sooner |
 | SD idle after a refill | `storage_sleep()` does nothing | Gate the MSC clock after a refill; ungate on the next access | Saves controller idle current between refills |
@@ -44,9 +43,9 @@ Status: **in progress.** Written 2026-10-19 from a review of the
 
 ## Plan, in order
 
-1. **Stop rendering while the screen is off** (quick, low risk). Pause the
-   Home slideshow and Cover Flow's background work whenever `lcd_active()`
-   is false; resume on wake.
+1. **Stop rendering while the screen is off** (quick, low risk). Pause
+   Cover Flow's background work whenever `lcd_active()` is false; resume on
+   wake.
 2. **Make screen updates sleep instead of spin** (medium). Change
    `lcd_wait()` to give up the CPU until the frame is done (interrupt, or a
    short sleep), freeing CPU time during every animation.
@@ -85,7 +84,7 @@ the gain, then step 4, and CPU scaling (step 3) last.
 
 | Step | Status | Notes |
 |---|---|---|
-| 1. No rendering with the screen off | Done (`151121a5b1`) | Home slideshow and Cover Flow's cover building pause; Now Playing polls once a second. Simulator, 46 s on Home with the screen off: 2.47 -> 0.92 s CPU |
+| 1. No rendering with the screen off | Done (`151121a5b1`) | Cover Flow's cover building pauses; Now Playing polls once a second. Simulator, 46 s on Home with the screen off: 2.47 -> 0.92 s CPU |
 | 2. LCD waits sleep | Done (`b5000bac17`) | End-of-frame and copy-done interrupts instead of polling. CPU idle stats always built in (View HW info > CPU idle, with an average since Select). H2, 10 min browsing while playing over Bluetooth: 90% idle |
 | 3. CPU frequency scaling | To do | The CPU is ~10% busy at 1008 MHz while playing over Bluetooth: the largest remaining gain |
 | 4. SD controller idle | Skipped | The controller already runs in its low-power mode (`MSC_LPM`), which stops the card clock between transfers. Gating its own clock would save ~1 mW at the risk of the card if registers aren't kept; bigger reads save ~6% of command overhead on a card that is woken only every few minutes |

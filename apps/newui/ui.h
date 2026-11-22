@@ -188,18 +188,6 @@ struct mp3entry;
  * the cached current art. False if there is none. */
 bool ui_art_decode_to(const struct mp3entry *id3, int size, fb_data *out);
 
-/* --- Home's cover slideshow (ui_slides.c) --- */
-
-/* True if the database has albums to show */
-bool ui_slides_available(void);
-/* Draws the slideshow's current frame into the current viewport's top
- * left w x h (zoomed covers panning, crossfading every 5 s); false if no
- * cover could be shown. Call it often (about 15 times a second). */
-bool ui_slides_draw(int w, int h);
-/* Looks the albums up and decodes the first two covers for a w x h
- * slideshow now (at boot), so the first ui_slides_draw() is quick */
-void ui_slides_prepare(int w, int h);
-
 /* --- battery usage (scr_battery.c) --- */
 
 /* Starts logging the battery level against running time, a point every 5% */
@@ -232,8 +220,6 @@ void ui_cover_build(const char *track_path);
 /* Home (scr_home.c). Returns the root menu screen to open (GO_TO_*),
  * or MENU_ATTACHED_USB. *selected keeps the row between visits. */
 int ui_home(int *selected);
-/* Does the slow part of Home's first draw ahead of time (at boot) */
-void ui_home_prepare(void);
 
 /* Cover Flow (scr_coverflow.c). Returns GO_TO_WPS when an album was
  * started, MENU_ATTACHED_USB, or GO_TO_ROOT for Back. */
