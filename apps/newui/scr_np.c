@@ -29,9 +29,9 @@
  *   3 of 12 · shuffle
  *   FLAC · 921 kbps · 44.1 kHz
  *
- *   ┌──────┐
- *   │ cover│
- *   └──────┘
+ *     ┌──────┐
+ *     │ cover│
+ *     └──────┘
  *   ──────────────────────────────────
  *   0:15 ███████-------------   -6:05
  *
@@ -199,9 +199,9 @@ static int draw_info(struct viewport *vp, const struct mp3entry *id3,
     return y;
 }
 
-/* The cover, square against the left edge and resting on the progress
- * band, as big as the room left by the readout allows. Albums with no art
- * leave the corner empty - no placeholder. */
+/* The cover: its left edge lined up with the text, resting on the
+ * progress band, as big as the room left by the readout allows. Albums
+ * with no art leave the corner empty - no placeholder. */
 static void draw_cover(int text_end)
 {
     const int bottom = NPL_BAND_Y;
@@ -211,7 +211,7 @@ static void draw_cover(int text_end)
 
     const struct bitmap *art = ui_art_current(size);
     if (art)
-        ui_art_draw(art, 0, bottom - size, size, 0);
+        ui_art_draw(art, UI_MARGIN, bottom - size, size, 0);
 }
 
 
