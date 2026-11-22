@@ -18,9 +18,10 @@
  *
  ****************************************************************************/
 
-/* Now Playing's drawing (PLAN.md §4.5), console style: the track as text
- * and one progress line at the bottom. The screen's logic stays in
- * apps/gui/wps.c, which calls ui_np_draw():
+/* Now Playing's drawing (PLAN.md §4.5), console style: the track as text,
+ * its cover in the bottom-left corner if the album has one, and one
+ * progress line at the bottom. The screen's logic stays in apps/gui/wps.c,
+ * which calls ui_np_draw():
  *
  *   Come Together
  *   The Beatles
@@ -28,6 +29,9 @@
  *   3 of 12 · shuffle
  *   FLAC · 921 kbps · 44.1 kHz
  *
+ *   ┌──────┐
+ *   │ cover│
+ *   └──────┘
  *   ──────────────────────────────────
  *   0:15 ███████-------------   -6:05
  *
@@ -57,6 +61,9 @@
 #define NPL_BAND_Y     (LCD_HEIGHT - UI_STATUS_H - 42) /* rule + progress */
 #define NPL_BAR_H      8
 #define OVERLAY_TICKS  (HZ * 3 / 2)
+#define NP_ART_MAX    120  /* the largest cover we make room for */
+#define NP_ART_MIN     64  /* smaller than this, leave the room empty */
+#define NP_ART_GAP      6  /* air between the readout and the cover */
 
 static long volume_until;   /* tick until which the volume overlay shows */
 static bool volume_shown;
@@ -147,9 +154,10 @@ static void draw_band(struct viewport *vp, const struct mp3entry *id3,
         draw_bar(bx, by, bw, pos, len);
 }
 
-/* the track, one line each: title, artist, album, position, the file */
-static void draw_info(struct viewport *vp, const struct mp3entry *id3,
-                      char *buf, size_t len)
+/* the track, one line each: title, artist, album, position, the file.
+ * Returns the y just below the last line. */
+static int draw_info(struct viewport *vp, const struct mp3entry *id3,
+                     char *buf, size_t len)
 {
     const int row = ui_font(UI_FONT_ROW);
     const int w = vp->width - 2 * UI_MARGIN;
@@ -184,7 +192,26 @@ static void draw_info(struct viewport *vp, const struct mp3entry *id3,
 
     ui_file_line(id3, line, sizeof line);
     if (line[0])
+    {
         ui_text(UI_MARGIN, y, row, UI_COL_MUTED, line, w, -1);
+        y += NP_LINE_H;
+    }
+    return y;
+}
+
+/* The cover, square against the left edge and resting on the progress
+ * band, as big as the room left by the readout allows. Albums with no art
+ * leave the corner empty - no placeholder. */
+static void draw_cover(int text_end)
+{
+    const int bottom = NPL_BAND_Y;
+    int size = MIN(NP_ART_MAX, bottom - text_end - NP_ART_GAP);
+    if (size < NP_ART_MIN)
+        return;
+
+    const struct bitmap *art = ui_art_current(size);
+    if (art)
+        ui_art_draw(art, 0, bottom - size, size, 0);
 }
 
 
@@ -225,7 +252,8 @@ void ui_np_draw(bool full)
     if (id3)
     {
         char buf[MAX_PATH];
-        draw_info(&vp, id3, buf, sizeof(buf));
+        int text_end = draw_info(&vp, id3, buf, sizeof(buf));
+        draw_cover(text_end);
     }
     if (overlay)
         draw_volume_band(&vp);
