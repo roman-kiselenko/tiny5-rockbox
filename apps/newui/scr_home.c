@@ -18,18 +18,16 @@
  *
  ****************************************************************************/
 
-/* Home (PLAN.md §4.2), console style: one column of text, a rule under
- * the banner, a '>' cursor and the chosen line in inverse video. No cover
- * art: covers live in Cover Flow.
+/* Home (PLAN.md §4.2): the menu list, plain - one row per screen, left
+ * aligned at the margin, the chosen row in inverse video. No banner, no
+ * numbering, no cover art: covers live in Cover Flow.
  *
  * Wheel/Prev/Next move (wrapping), Centre opens, Back returns to the first
  * row, holding Back opens Now Playing. */
 
 #include "config.h"
-#include <stdio.h>
 #include "action.h"
 #include "audio.h"
-#include "font.h"
 #include "kernel.h"
 #include "lang.h"
 #include "language.h"
@@ -44,11 +42,7 @@
 #include "menus/exported_menus.h"
 #endif
 
-/* Tiny5 Mono advances 6 px per character, so the menu is a text grid */
-#define HOME_COL      6     /* one character column */
-
-#define HOME_LINE_H   UI_LINE_H   /* the menu line pitch */
-#define BLINK_TICKS   50    /* the cursor flips every half second */
+#define HOME_ROW_H    UI_ROW_H    /* the same row pitch as every other list */
 
 enum home_target {
     HOME_NOW_PLAYING,
@@ -86,17 +80,6 @@ static const struct home_item items[HOME_COUNT] = {
 static bool can_play(void)
 {
     return audio_status() || global_status.resume_index != -1;
-}
-
-/* has the cursor just flipped? redraw Home only on those ticks */
-static bool blink_changed(void)
-{
-    static int phase = -1;
-    int p = (current_tick / BLINK_TICKS) & 1;
-    if (p == phase)
-        return false;
-    phase = p;
-    return true;
 }
 
 /* true when audio status or the playing track differs from the last call */
@@ -138,43 +121,22 @@ static void draw(struct viewport *vp, const enum home_target *list, int n,
                  int sel)
 {
     struct viewport *last = lcd_set_viewport(vp);
-    const int title = ui_font(UI_FONT_TITLE);
     const int row = ui_font(UI_FONT_ROW);
-    const int small = ui_font(UI_FONT_SMALL);
-    char line[64];
-    int y = 4;
+    const int text_w = vp->width - 2 * UI_MARGIN;
+    int y = 0;
 
     ui_fill_rect(0, 0, vp->width, vp->height, UI_COL_BG);
 
-    /* the prompt: the player's name, a '>', and a blinking cursor */
-    snprintf(line, sizeof line, "%s>", str(LANG_NEWUI_HOME_TITLE));
-    ui_text_vcenter(UI_MARGIN, y, HOME_LINE_H, title, UI_COL_TEXT, line, 0, -1);
-    if ((current_tick / BLINK_TICKS) & 1)
-        ui_fill_rect(UI_MARGIN + HOME_COL * (int)strlen(line), y + 1,
-                     HOME_COL, font_get(title)->height, UI_COL_TEXT);
-    y += HOME_LINE_H;
-
-    ui_fill_rect(0, y, vp->width, 1, ui_col(UI_C_BAR_LINE));
-    y += 2;
-
-    /* the menu: numbered lines, the chosen one in inverse video */
     for (int i = 0; i < n; i++)
     {
-        bool on = i == sel;
-        snprintf(line, sizeof line, "%2d %s", i + 1, item_label(list[i]));
+        const bool on = i == sel;
         if (on)
-            ui_selection(0, y, vp->width, HOME_LINE_H);
-        ui_text_vcenter(UI_MARGIN, y, HOME_LINE_H, row,
-                        on ? ui_sel_text() : UI_COL_TEXT, line,
-                        vp->width - UI_MARGIN, -1);
-        y += HOME_LINE_H;
+            ui_selection(0, y, vp->width, HOME_ROW_H);
+        ui_text_vcenter(UI_MARGIN, y, HOME_ROW_H, row,
+                        on ? ui_sel_text() : UI_COL_TEXT,
+                        item_label(list[i]), text_w, -1);
+        y += HOME_ROW_H;
     }
-
-    /* the status line: where the cursor is */
-    ui_fill_rect(0, y + 2, vp->width, 1, ui_col(UI_C_BAR_LINE));
-    snprintf(line, sizeof line, "%d/%d", sel + 1, n);
-    ui_text_vcenter(UI_MARGIN, y + 4, HOME_LINE_H, small, UI_COL_MUTED,
-                    line, 0, -1);
 
     lcd_set_viewport(vp);
 
@@ -277,9 +239,9 @@ int ui_home(int *selected)
             }
             case ACTION_NONE:
                 /* the status bar redraws itself; redraw Home when the
-                   track or the play state changed (Now Playing, art), or
-                   when the cursor blinks */
-                if (state_changed() || blink_changed())
+                   track or the play state changed (Now Playing appears
+                   and goes away, the battery, the clock) */
+                if (state_changed())
                     redraw = true;
                 break;
             default:
