@@ -412,7 +412,6 @@ struct user_settings
     int newui_style;   /* new UI selection: 0 Classic bar, 1 Minimal card */
     int newui_accent;  /* new UI accent colour, index in ui_style.c */
     bool newui_clock;  /* status bar clock */
-    bool newui_battery_pct; /* battery percentage next to the battery */
 
 
     /* goto current song when exiting WPS */

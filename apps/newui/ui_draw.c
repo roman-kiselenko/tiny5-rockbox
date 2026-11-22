@@ -180,23 +180,6 @@ void ui_round_corners(int x, int y, int w, int h, int r, unsigned bg)
         }
 }
 
-/* Filled triangle pointing right (play glyph) inside w x h */
-void ui_fill_triangle_right(int x, int y, int w, int h, unsigned color)
-{
-    for (int row = 0; row < h; row++)
-    {
-        /* distance of the row's centre from the nearer end, doubled:
-         * 1, 3, 5, ... up to ~h at the middle, then back down */
-        int twice = 2 * row + 1;
-        int dist = twice <= h ? twice : 2 * h - twice;
-        int len = dist * w;               /* row length times h */
-        int full = len / h;
-        int frac = (len % h) * 256 / h;
-        ui_fill_rect(x, y + row, full, 1, color);
-        ui_blend_pixel(x + full, y + row, color, frac);
-    }
-}
-
 int ui_text_width(int font, const char *text)
 {
     int w = 0, h;
@@ -314,23 +297,10 @@ int ui_text_vcenter(int x, int y, int h, int font, unsigned color,
     return ui_text(x, ui_text_y(font, y, h), font, color, text, max_w, align);
 }
 
-/* The iPod's ">": two bold strokes meeting at a point, drawn with
- * anti-aliased edges, its right end at x_right, centred in [y, y + h).
- * Each row is a span T wide (in 1/256 px) along the stroke. */
-void ui_chevron(int x_right, int y, int h, unsigned color)
+/* The glyph on rows that open something, its cell ending at x_right,
+ * centred in the band [y, y + h) */
+void ui_drill(int x_right, int y, int h, unsigned color)
 {
-    const int W = UI_CHEVRON_W, H = UI_CHEVRON_H, T = 2 * 256 + 128;
-    const int x0 = x_right - W, y0 = y + (h - H) / 2;
-    for (int r = 0; r < H; r++)
-    {
-        /* the stroke's centre: out to the right at the middle row */
-        int d = abs(2 * r + 1 - H);                     /* 0..H-1 */
-        int xc = (W * 256 - T / 2) - (W * 256 - T) * d / H;
-        int l = xc - T / 2, rr = xc + T / 2;            /* in 1/256 px */
-        for (int px = l >> 8; px <= (rr - 1) >> 8; px++)
-        {
-            int p0 = MAX(px * 256, l), p1 = MIN(px * 256 + 256, rr);
-            ui_blend_pixel(x0 + px, y0 + r, color, p1 - p0);
-        }
-    }
+    ui_text_vcenter(x_right - UI_CELL_W, y, h, ui_font(UI_FONT_ROW), color,
+                    UI_G_DRILL, 0, -1);
 }

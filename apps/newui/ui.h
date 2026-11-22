@@ -35,6 +35,7 @@
 #define UI_MARGIN       12  /* side margin */
 #define UI_GAP           8
 #define UI_ROW_H        16  /* text row: a 9 px glyph + 7 px of air */
+#define UI_LINE_H       12  /* one line of text, console screens */
 #define UI_ART_ROW_H    48  /* row with a cover: UI_THUMB fills the row */
 #define UI_LINE2_ROW_H  24  /* name + grey second line: two lines + 6 px */
 
@@ -124,12 +125,22 @@ void ui_gradient_round_rect(int x, int y, int w, int h, int r, unsigned top,
                             unsigned bottom);
 void ui_stroke_round_rect(int x, int y, int w, int h, int r, int stroke,
                           unsigned color);
-void ui_fill_triangle_right(int x, int y, int w, int h, unsigned color);
-/* The ">" on rows that open something: bold, its right end at x_right,
- * centred in the band [y, y + h) */
-#define UI_CHEVRON_W 7
-#define UI_CHEVRON_H 11
-void ui_chevron(int x_right, int y, int h, unsigned color);
+/* --- icons: glyphs of the UI font, not bitmaps ---
+ * Tiny5 Mono carries transport and status symbols. One glyph per icon, in
+ * one UI_CELL_W character cell. */
+#define UI_CELL_W  6      /* Tiny5 Mono advances 6 px per character */
+#define UI_G_PLAY  "\xe2\x8f\xb5"  /* ⏵ U+23F5 */
+#define UI_G_PAUSE "\xe2\x8f\xb8"  /* ⏸ U+23F8 */
+#define UI_G_STOP  "\xe2\x8f\xb9"  /* ⏹ U+23F9 */
+#define UI_G_FF    "\xe2\x8f\xa9"  /* ⏩ U+23E9 */
+#define UI_G_FB    "\xe2\x8f\xaa"  /* ⏪ U+23EA */
+#define UI_G_REC   "\xe2\x8f\xba"  /* ⏺ U+23FA */
+#define UI_G_LOCK  "\xf0\x9f\x94\x92" /* 🔒 U+1F512 */
+#define UI_G_BT    "BT"            /* Unicode has no Bluetooth rune */
+#define UI_G_DRILL ">"            /* a row that opens something */
+/* room a drill glyph takes at the right end of a list row */
+#define UI_DRILL_W (UI_CELL_W + 4)
+void ui_drill(int x_right, int y, int h, unsigned color);
 /* Rounds the corners of what is drawn at x,y,w,h, painting outside them in bg */
 void ui_round_corners(int x, int y, int w, int h, int r, unsigned bg);
 int ui_text_width(int font, const char *text);
@@ -252,7 +263,6 @@ struct ui_status {
     bool clock_24h;
     const char *title;     /* the screen's name, left; NULL none */
     int battery;           /* percent, -1 unknown */
-    bool battery_pct;      /* the percentage left of the battery */
     bool battery_visible;  /* false while blinking off (low battery) */
     bool charging;
     int bluetooth;         /* 0 off, 1 on but not connected, 2 connected */

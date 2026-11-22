@@ -914,8 +914,6 @@ const struct settings_list settings[] = {
                    ID2P(LANG_NEWUI_COL_RED), ID2P(LANG_NEWUI_COL_GREEN),
                    ID2P(LANG_NEWUI_COL_PURPLE), ID2P(LANG_NEWUI_COL_ORANGE)),
     OFFON_SETTING(0, newui_clock, LANG_NEWUI_CLOCK, true, "status bar clock", NULL),
-    OFFON_SETTING(0, newui_battery_pct, LANG_NEWUI_BATTERY_PCT, false,
-                  "battery percentage", NULL),
     /* system */
     INT_SETTING(F_TIME_SETTING, poweroff, LANG_POWEROFF_IDLE, 10,
                 "idle poweroff", UNIT_MIN, 0,60,1,

@@ -118,12 +118,11 @@ static void page_shapes(void)
                     LCD_WIDTH - 2 * UI_MARGIN, 1);
     y += UI_ROW_H + 6;
 
-    /* shapes: art placeholder, outline, play glyph, battery */
+    /* shapes: art placeholder, outline, and the status glyphs */
     ui_fill_round_rect(UI_MARGIN, y, 64, 64, 10, UI_COL_TRACK);
     ui_stroke_round_rect(UI_MARGIN + 76, y, 64, 64, 10, 2, UI_COL_TEXT2);
-    ui_fill_triangle_right(UI_MARGIN + 160, y + 16, 28, 32, UI_COL_TEXT);
-    ui_fill_rect(UI_MARGIN + 196, y + 16, 9, 32, UI_COL_TEXT);
-    ui_fill_rect(UI_MARGIN + 212, y + 16, 9, 32, UI_COL_TEXT);
+    ui_text_vcenter(UI_MARGIN + 160, y, 64, f, UI_COL_TEXT,
+                    UI_G_PLAY UI_G_PAUSE UI_G_STOP UI_G_LOCK UI_G_BT, 0, -1);
     ui_stroke_round_rect(UI_MARGIN + 234, y + 20, 44, 22, 5, 2, UI_COL_TEXT);
     ui_fill_round_rect(UI_MARGIN + 278, y + 26, 4, 10, 2, UI_COL_TEXT);
     ui_fill_round_rect(UI_MARGIN + 238, y + 24, 26, 14, 2, UI_COL_TEXT);

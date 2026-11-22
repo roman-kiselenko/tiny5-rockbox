@@ -18,13 +18,15 @@
  *
  ****************************************************************************/
 
-/* Home (PLAN.md §4.2): the menu in the left half, the playing album's
- * cover in the right half. Replaces the root menu's list.
+/* Home (PLAN.md §4.2), console style: one column of text, a rule under
+ * the banner, a '>' cursor and the chosen line in inverse video. No cover
+ * art: covers live in Cover Flow.
  *
  * Wheel/Prev/Next move (wrapping), Centre opens, Back returns to the first
  * row, holding Back opens Now Playing. */
 
 #include "config.h"
+#include <stdio.h>
 #include "action.h"
 #include "audio.h"
 #include "font.h"
@@ -42,7 +44,11 @@
 #include "menus/exported_menus.h"
 #endif
 
-#define HOME_MENU_W   160
+/* Tiny5 Mono advances 6 px per character, so the menu is a text grid */
+#define HOME_COL      6     /* one character column */
+
+#define HOME_LINE_H   UI_LINE_H   /* the menu line pitch */
+#define BLINK_TICKS   50    /* the cursor flips every half second */
 
 enum home_target {
     HOME_NOW_PLAYING,
@@ -82,6 +88,17 @@ static bool can_play(void)
     return audio_status() || global_status.resume_index != -1;
 }
 
+/* has the cursor just flipped? redraw Home only on those ticks */
+static bool blink_changed(void)
+{
+    static int phase = -1;
+    int p = (current_tick / BLINK_TICKS) & 1;
+    if (p == phase)
+        return false;
+    phase = p;
+    return true;
+}
+
 /* true when audio status or the playing track differs from the last call */
 static bool state_changed(void)
 {
@@ -117,73 +134,48 @@ static const char *item_label(enum home_target t)
     return str(items[t].lang_id);
 }
 
-/* As the iPod: the cover fills the right half of the screen,
- * top to bottom (the status bar is only over the menu), cropped to it */
-/* a shadow the menu casts over the cover, along their shared edge: it
- * darkens the cover's left SHADOW_W pixels, most at the edge */
-#define SHADOW_W 12
-static void draw_edge_shadow(int h)
-{
-    for (int x = 0; x < SHADOW_W; x++)
-    {
-        int a = (SHADOW_W - x) * (SHADOW_W - x) * 150 / (SHADOW_W * SHADOW_W);
-        for (int y = 0; y < h; y++)
-            ui_blend_pixel(x, y, LCD_RGBPACK(0, 0, 0), a);
-    }
-}
-
-static void draw_full_art(void)
-{
-    struct viewport av = { .buffer = NULL, .flags = VP_DEFAULT_FLAGS };
-    viewport_set_fullscreen(&av, SCREEN_MAIN);
-    av.x = HOME_MENU_W;
-    av.width = LCD_WIDTH - HOME_MENU_W;
-    lcd_set_viewport(&av);
-
-    const struct bitmap *art = ui_art_current(LCD_HEIGHT);
-    if (art)
-    {
-        int w = MIN(art->width, av.width), h = MIN(art->height, av.height);
-        ui_fill_rect(0, 0, av.width, av.height, UI_COL_BG);
-        lcd_bitmap_part((const fb_data *)art->data,
-                        (art->width - w) / 2, (art->height - h) / 2,
-                        STRIDE(SCREEN_MAIN, art->width, art->height),
-                        (av.width - w) / 2, (av.height - h) / 2, w, h);
-    }
-    else
-    {
-        const int size = 120;
-        ui_fill_rect(0, 0, av.width, av.height, UI_COL_PH_BG);
-        ui_art_placeholder((av.width - size) / 2, (av.height - size) / 2, size, 0);
-    }
-    draw_edge_shadow(av.height);
-    lcd_update_viewport();
-}
-
 static void draw(struct viewport *vp, const enum home_target *list, int n,
                  int sel)
 {
     struct viewport *last = lcd_set_viewport(vp);
-    int font = ui_resolve_font(FONT_UI);
+    const int title = ui_font(UI_FONT_TITLE);
+    const int row = ui_font(UI_FONT_ROW);
+    const int small = ui_font(UI_FONT_SMALL);
+    char line[64];
+    int y = 4;
 
     ui_fill_rect(0, 0, vp->width, vp->height, UI_COL_BG);
 
-    /* menu: Classic accent bar on the selection, chevron on it */
+    /* the prompt: the player's name, a '>', and a blinking cursor */
+    snprintf(line, sizeof line, "%s>", str(LANG_NEWUI_HOME_TITLE));
+    ui_text_vcenter(UI_MARGIN, y, HOME_LINE_H, title, UI_COL_TEXT, line, 0, -1);
+    if ((current_tick / BLINK_TICKS) & 1)
+        ui_fill_rect(UI_MARGIN + HOME_COL * (int)strlen(line), y + 1,
+                     HOME_COL, font_get(title)->height, UI_COL_TEXT);
+    y += HOME_LINE_H;
+
+    ui_fill_rect(0, y, vp->width, 1, ui_col(UI_C_BAR_LINE));
+    y += 2;
+
+    /* the menu: numbered lines, the chosen one in inverse video */
     for (int i = 0; i < n; i++)
     {
-        int y = i * UI_ROW_H;
-        bool selected = i == sel;
-        unsigned fg = selected ? ui_sel_text() : UI_COL_TEXT;
-        if (selected)
-            ui_selection(0, y, HOME_MENU_W, UI_ROW_H);
-        ui_text_vcenter(UI_MARGIN, y, UI_ROW_H, font, fg,
-                        item_label(list[i]),
-                        HOME_MENU_W - UI_MARGIN - 18, -1);
-        if (selected)
-            ui_chevron(HOME_MENU_W - 8, y, UI_ROW_H, fg);
+        bool on = i == sel;
+        snprintf(line, sizeof line, "%2d %s", i + 1, item_label(list[i]));
+        if (on)
+            ui_fill_rect(0, y, vp->width, HOME_LINE_H, ui_sel_bg());
+        ui_text_vcenter(UI_MARGIN, y, HOME_LINE_H, row,
+                        on ? ui_sel_text() : UI_COL_TEXT, line,
+                        vp->width - UI_MARGIN, -1);
+        y += HOME_LINE_H;
     }
 
-    draw_full_art();
+    /* the status line: where the cursor is */
+    ui_fill_rect(0, y + 2, vp->width, 1, ui_col(UI_C_BAR_LINE));
+    snprintf(line, sizeof line, "%d/%d", sel + 1, n);
+    ui_text_vcenter(UI_MARGIN, y + 4, HOME_LINE_H, small, UI_COL_MUTED,
+                    line, 0, -1);
+
     lcd_set_viewport(vp);
 
     /* slide in if a screen change asked for it */
@@ -204,7 +196,7 @@ int ui_home(int *selected)
     int ret = GO_TO_ROOT;
 
     viewport_set_defaults(&vp, SCREEN_MAIN);
-    ui_status_width(HOME_MENU_W);
+    ui_status_width(LCD_WIDTH);
     ui_status_title(str(LANG_NEWUI_HOME_TITLE));
 
     while (true)
@@ -260,7 +252,7 @@ int ui_home(int *selected)
                         goto out;
                     }
                     ui_transition(-1);
-                    ui_status_width(HOME_MENU_W);
+                    ui_status_width(LCD_WIDTH);
                     ui_status_title(str(LANG_NEWUI_HOME_TITLE));
                     redraw = true;
                     break;
@@ -274,7 +266,7 @@ int ui_home(int *selected)
                         goto out;
                     }
                     ui_transition(-1);
-                    ui_status_width(HOME_MENU_W);
+                    ui_status_width(LCD_WIDTH);
                     ui_status_title(str(LANG_NEWUI_HOME_TITLE));
                     redraw = true;
                     break;
@@ -285,8 +277,9 @@ int ui_home(int *selected)
             }
             case ACTION_NONE:
                 /* the status bar redraws itself; redraw Home when the
-                   track or the play state changed (Now Playing, art) */
-                if (state_changed())
+                   track or the play state changed (Now Playing, art), or
+                   when the cursor blinks */
+                if (state_changed() || blink_changed())
                     redraw = true;
                 break;
             default:
