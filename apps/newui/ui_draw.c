@@ -22,11 +22,14 @@
  * current viewport and clipped to it. Colours are native (LCD_RGBPACK). */
 
 #include "config.h"
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "system.h"
 #include "lcd.h"
 #include "font.h"
+#include "metadata.h"
+#include "string-extra.h"
 #include "ui.h"
 
 static inline unsigned blend565(unsigned dst, unsigned src, int alpha)
@@ -295,6 +298,45 @@ int ui_text_vcenter(int x, int y, int h, int font, unsigned color,
                     const char *text, int max_w, int align)
 {
     return ui_text(x, ui_text_y(font, y, h), font, color, text, max_w, align);
+}
+
+/* Untagged files have no title: fall back to the file name, minus the
+ * extension, the same way the file browser spells it. */
+const char *ui_track_title(const struct mp3entry *id3, char *buf, int size)
+{
+    if (id3->title && *id3->title)
+        return id3->title;
+
+    const char *name = strrchr(id3->path, '/');
+    strlcpy(buf, name ? name + 1 : id3->path, size);
+    char *dot = strrchr(buf, '.');
+    if (dot && dot != buf)
+        *dot = '\0';
+    return buf;
+}
+
+/* The playing file as one readout line: codec, bitrate, sample rate. The
+ * names come from Rockbox's own codec table (audio_formats[]), the one
+ * warble and the manual use. */
+int ui_file_line(const struct mp3entry *id3, char *buf, int size)
+{
+    if (size <= 0)
+        return 0;
+
+    int n = 0;
+
+    if (id3->codectype != AFMT_UNKNOWN && id3->codectype < AFMT_NUM_CODECS)
+        n = snprintf(buf, size, "%s", audio_formats[id3->codectype].label);
+    n = MIN(n, size - 1);
+
+    if (id3->bitrate && n < size - 1)
+        n = MIN(n + snprintf(buf + n, size - n, UI_SEP "%u kbps",
+                            id3->bitrate), size - 1);
+    if (id3->frequency && n < size - 1)
+        n = MIN(n + snprintf(buf + n, size - n, UI_SEP "%.1f kHz",
+                            id3->frequency / 1000.0), size - 1);
+
+    return n;
 }
 
 /* The glyph on rows that open something, its cell ending at x_right,

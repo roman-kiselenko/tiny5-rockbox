@@ -21,13 +21,18 @@
 /* The lock screen (PLAN.md §4.8), shown while the keys are locked:
  *
  *                 12:41
- *            Thu 15 Oct
- *   [ cover ]  Title
- *              Artist
- *   Press Power or double-press Centre to unlock
+ *              Thu 15 Oct
  *
- * Called from action.c's softlock handling, so it reads buttons directly
- * rather than through get_action(). */
+ *              Come Together
+ *              The Beatles
+ *              Abbey Road
+ *              FLAC · 921 kbps · 44.1 kHz
+ *
+ * Press Power or double-press Centre to unlock
+ *
+ * The keys are locked, not the player: the track readout is the one from
+ * Now Playing, minus the progress band. Called from action.c's softlock
+ * handling, so it reads buttons directly rather than through get_action(). */
 
 #include "config.h"
 #include <stdio.h>
@@ -48,26 +53,42 @@
 #include "viewport.h"
 #include "ui.h"
 
-#define LOCK_ART    96
 #define DOUBLE_TAP  (HZ / 2)
-
-/* the clock and date, then the playing track's cover, title and artist,
-   centred together in the room above the unlock hint */
 #define LOCK_GAP    18              /* between the date and the track */
+#define LOCK_LINE_H UI_LINE_H       /* one line of the track readout */
 
+/* the clock and date, then the playing track as text, centred together in
+   the room above the unlock hint */
 static void draw(struct viewport *vp)
 {
     struct viewport *last = lcd_set_viewport(vp);
     const int big = ui_font(UI_FONT_BIG), body = ui_font(UI_FONT_BODY);
     const int small = ui_font(UI_FONT_SMALL), row = ui_font(UI_FONT_ROW);
     const int big_h = font_get(big)->height, body_h = font_get(body)->height;
-    char buf[64];
+    const int row_h = font_get(row)->height;
+    const int tw = vp->width - 2 * UI_MARGIN;
+    char buf[64], name[64], file[64];
 
     ui_fill_rect(0, 0, vp->width, vp->height, UI_COL_BG);
 
     const int hint_y = vp->height - font_get(small)->height - 4;
     struct mp3entry *id3 = audio_status() ? audio_current_track() : NULL;
-    int content_h = big_h + body_h + (id3 ? LOCK_GAP + LOCK_ART : 0);
+
+    const char *title = NULL, *artist = NULL, *album = NULL, *fmt = NULL;
+    if (id3)
+    {
+        title = ui_track_title(id3, name, sizeof name);
+        artist = id3->artist && *id3->artist ? id3->artist :
+                 id3->albumartist && *id3->albumartist ? id3->albumartist : NULL;
+        album = id3->album && *id3->album ? id3->album : NULL;
+        if (ui_file_line(id3, file, sizeof file))
+            fmt = file;
+    }
+    int lines = (title != NULL) + (artist != NULL) + (album != NULL)
+              + (fmt != NULL);
+
+    int content_h = big_h + body_h
+                  + (lines ? LOCK_GAP + (lines - 1) * LOCK_LINE_H + row_h : 0);
     int y = MAX((hint_y - content_h) / 2, 4);
 
     struct tm *tm = get_time();
@@ -80,34 +101,23 @@ static void draw(struct viewport *vp)
     }
     snprintf(buf, sizeof(buf), global_settings.timeformat ? "%d:%02d" : "%02d:%02d",
              hour, tm->tm_min);
-    ui_text(0, y, big, UI_COL_TEXT, buf, vp->width, 0);
+    ui_text(UI_MARGIN, y, big, UI_COL_TEXT, buf, tw, 0);
     y += big_h;
     snprintf(buf, sizeof(buf), "%s %d %s", str(LANG_WEEKDAY_SUNDAY + tm->tm_wday),
              tm->tm_mday, str(LANG_MONTH_JANUARY + tm->tm_mon));
-    ui_text(0, y, body, UI_COL_TEXT2, buf, vp->width, 0);
+    ui_text(UI_MARGIN, y, body, UI_COL_TEXT2, buf, tw, 0);
     y += body_h + LOCK_GAP;
 
-    /* the playing track */
-    if (id3)
-    {
-        const int ay = y, tx = UI_MARGIN + LOCK_ART + UI_MARGIN;
-        const int tw = vp->width - tx - UI_MARGIN;
-        const struct bitmap *art = ui_art_current(LOCK_ART);
-        if (art)
-            ui_art_draw(art, UI_MARGIN, ay, LOCK_ART, 8);
-        else
-            ui_art_placeholder(UI_MARGIN, ay, LOCK_ART, 8);
-        const char *title = id3->title && *id3->title ? id3->title : NULL;
-        const char *artist = id3->artist && *id3->artist ? id3->artist :
-                             id3->albumartist && *id3->albumartist ? id3->albumartist : NULL;
-        int ty = ay + (LOCK_ART - font_get(row)->height -
-                       (artist ? body_h : 0)) / 2;
-        if (title)
-            ui_text(tx, ty, row, UI_COL_TEXT, title, tw, -1);
-        if (artist)
-            ui_text(tx, ty + font_get(row)->height, body, UI_COL_TEXT2,
-                    artist, tw, -1);
-    }
+    /* the playing track, one line each */
+    if (title)
+        ui_text(UI_MARGIN, y, row, UI_COL_TEXT, title, tw, 0);
+    if (artist)
+        ui_text(UI_MARGIN, y + LOCK_LINE_H, body, UI_COL_TEXT2, artist, tw, 0);
+    if (album)
+        ui_text(UI_MARGIN, y + 2 * LOCK_LINE_H, body, UI_COL_TEXT2, album, tw, 0);
+    if (fmt)
+        ui_text(UI_MARGIN, y + (lines - 1) * LOCK_LINE_H, small, UI_COL_MUTED,
+                fmt, tw, 0);
 
     ui_text(UI_MARGIN, hint_y, small, UI_COL_MUTED, str(LANG_NEWUI_UNLOCK_HINT),
             vp->width - 2 * UI_MARGIN, 0);

@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include "lcd.h"
+#include "metadata.h"   /* struct mp3entry, the codec names */
 
 /* --- design tokens (PLAN.md §2) ---
  * Sized for Tiny5 Mono: 9 px tall, 7 px ascent, 5 px cap height. PLAN.md
@@ -125,6 +126,16 @@ void ui_gradient_round_rect(int x, int y, int w, int h, int r, unsigned top,
                             unsigned bottom);
 void ui_stroke_round_rect(int x, int y, int w, int h, int r, int stroke,
                           unsigned color);
+/* --- the playing track as text --- */
+#define UI_SEP " \xc2\xb7 "  /* between the parts of a readout line */
+/* The file line: the codec, then bitrate and sample rate when the codec
+ * reports them ("FLAC <sep> 921 kbps <sep> 44.1 kHz"). Returns the length
+ * written, 0 when nothing is known. */
+int ui_file_line(const struct mp3entry *id3, char *buf, int size);
+/* The track's name: the title tag, or the file name without its extension
+ * when the file has no tags. Copies into buf when the fallback is needed. */
+const char *ui_track_title(const struct mp3entry *id3, char *buf, int size);
+
 /* --- icons: glyphs of the UI font, not bitmaps ---
  * Tiny5 Mono carries transport and status symbols. One glyph per icon, in
  * one UI_CELL_W character cell. */
@@ -154,6 +165,13 @@ int ui_text_y(int font, int y, int h);
 /* Same, vertically centred in the band [y, y + h) */
 int ui_text_vcenter(int x, int y, int h, int font, unsigned color,
                     const char *text, int max_w, int align);
+
+/* --- readout lines of the playing track --- */
+#define UI_SEP " \xc2\xb7 "  /* between the parts of a readout line */
+/* "FLAC \xc2\xb7 921 kbps \xc2\xb7 44.1 kHz": the codec, then bitrate and
+ * sample rate when the codec reports them. Returns the length written, 0
+ * when nothing is known. */
+int ui_file_line(const struct mp3entry *id3, char *buf, int size);
 
 /* --- pop-ups (ui_popup.c) --- */
 
