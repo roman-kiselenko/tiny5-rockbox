@@ -143,7 +143,7 @@ void ui_choice_draw(struct viewport *vp, const char *title, int count, int sel,
     for (int i = 0; i < count; i++, ry += UI_ROW_H)
     {
         if (i == sel)
-            ui_fill_round_rect(x + 8, ry, w - 16, UI_ROW_H, 6, ui_sel_bg());
+            ui_selection(x + 8, ry, w - 16, UI_ROW_H);
         ui_text_vcenter(x + UI_POPUP_PAD, ry, UI_ROW_H, font,
                         i == sel ? ui_sel_text() : UI_COL_TEXT2,
                         label(i, data, buf, sizeof(buf)), tw, -1);

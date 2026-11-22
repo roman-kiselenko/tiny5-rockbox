@@ -101,13 +101,10 @@ static void page_shapes(void)
 {
     int f = ui_font(UI_FONT_BODY);
 
-    /* Minimal selection card and Classic accent bar, as list rows */
+    /* the selector, as every list draws it: a flat band, no border */
     int y = UI_STATUS_H + 2;
-    ui_fill_round_rect(6, y + 1, LCD_WIDTH - 12, UI_ROW_H - 2, 6, UI_COL_SEL);
-    ui_text_vcenter(UI_MARGIN, y, UI_ROW_H, f, UI_COL_SEL_TEXT, "Minimal selection", 0, -1);
-    y += UI_ROW_H;
-    ui_fill_rect(0, y, LCD_WIDTH, UI_ROW_H, UI_COL_ACCENT);
-    ui_text_vcenter(UI_MARGIN, y, UI_ROW_H, f, UI_COL_TEXT, "Classic selection", 0, -1);
+    ui_selection(0, y, LCD_WIDTH, UI_ROW_H);
+    ui_text_vcenter(UI_MARGIN, y, UI_ROW_H, f, ui_sel_text(), "Selected row", 0, -1);
     y += UI_ROW_H;
     ui_text_vcenter(UI_MARGIN, y, UI_ROW_H, f, UI_COL_TEXT,
                     "A very long album title that will not fit on one row of the list",

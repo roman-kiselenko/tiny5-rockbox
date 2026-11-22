@@ -163,7 +163,7 @@ static void draw(struct viewport *vp, const enum home_target *list, int n,
         bool on = i == sel;
         snprintf(line, sizeof line, "%2d %s", i + 1, item_label(list[i]));
         if (on)
-            ui_fill_rect(0, y, vp->width, HOME_LINE_H, ui_sel_bg());
+            ui_selection(0, y, vp->width, HOME_LINE_H);
         ui_text_vcenter(UI_MARGIN, y, HOME_LINE_H, row,
                         on ? ui_sel_text() : UI_COL_TEXT, line,
                         vp->width - UI_MARGIN, -1);

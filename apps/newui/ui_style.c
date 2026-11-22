@@ -20,8 +20,8 @@
 
 /* The look the user chose (Settings > General > Display): the theme's
  * colours (Dark, or Light like the iPod; the layout is the same), the
- * selection as a bar in the accent colour (Classic) or a card (Minimal),
- * and the accent colour. */
+ * selection colour (the accent in Classic, plain grey in Minimal) and the
+ * accent colour. The selector's shape is the same everywhere: a flat band. */
 
 #include "config.h"
 #include "settings.h"
@@ -91,9 +91,6 @@ unsigned ui_col(enum ui_col c)
     return themes[ui_light()][c];
 }
 
-#define CARD_INSET  6
-#define CARD_RADIUS 6
-
 unsigned ui_accent(void)
 {
     unsigned i = global_settings.newui_accent;
@@ -131,14 +128,10 @@ unsigned ui_sel_top(void)
                        b + (255 - b) * 2 / 5);
 }
 
+/* One selector for every list, menu and pop-up: a flat band of the
+ * selection colour, edge to edge, exactly as Home draws it. No card, no
+ * gloss, no border. */
 void ui_selection(int x, int y, int w, int h)
 {
-    if (ui_minimal())
-        ui_fill_round_rect(x + CARD_INSET, y, w - 2 * CARD_INSET, h,
-                           CARD_RADIUS, UI_COL_SEL);
-    else
-    {
-        lcd_set_drawmode(DRMODE_SOLID);
-        lcd_gradient_fillrect(x, y, w, h, ui_sel_top(), ui_accent());
-    }
+    ui_fill_rect(x, y, w, h, ui_sel_bg());
 }
