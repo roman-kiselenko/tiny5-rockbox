@@ -319,7 +319,7 @@ int ui_text_vcenter(int x, int y, int h, int font, unsigned color,
  * Each row is a span T wide (in 1/256 px) along the stroke. */
 void ui_chevron(int x_right, int y, int h, unsigned color)
 {
-    const int W = UI_CHEVRON_W, H = UI_CHEVRON_H, T = 3 * 256 + 128;
+    const int W = UI_CHEVRON_W, H = UI_CHEVRON_H, T = 2 * 256 + 128;
     const int x0 = x_right - W, y0 = y + (h - H) / 2;
     for (int r = 0; r < H; r++)
     {

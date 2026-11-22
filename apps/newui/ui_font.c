@@ -24,15 +24,17 @@
 #include "settings.h"
 #include "ui.h"
 
-/* Noto Sans CJK JP (Latin, Greek, Cyrillic, Chinese, Japanese, Korean),
- * installed by buildzip from fonts/newui. The files are several MB: glyphs
- * load from the card on demand into each font's cache. */
+/* Tiny5 Mono, a 9 px pixel font (SIL OFL 1.1): one face for the whole UI,
+ * installed by buildzip from fonts/newui. Glyphs load from the card on
+ * demand into the font's cache, so the file's size costs disk, not RAM.
+ * All five slots point at the same file: keeping the enum lets the sizes
+ * diverge again later (see fonts/newui/mkfonts.sh for upscaled faces). */
 static const char * const font_files[UI_FONT_COUNT] = {
-    [UI_FONT_SMALL] = FONT_DIR "/newui-14.fnt",
-    [UI_FONT_BODY]  = FONT_DIR "/newui-18.fnt",
-    [UI_FONT_ROW]   = FONT_DIR "/newui-20bold.fnt",
-    [UI_FONT_TITLE] = FONT_DIR "/newui-22bold.fnt",
-    [UI_FONT_BIG]   = FONT_DIR "/newui-40bold.fnt",
+    [UI_FONT_SMALL] = FONT_DIR "/08-Tiny5Mono.fnt",
+    [UI_FONT_BODY]  = FONT_DIR "/08-Tiny5Mono.fnt",
+    [UI_FONT_ROW]   = FONT_DIR "/08-Tiny5Mono.fnt",
+    [UI_FONT_TITLE] = FONT_DIR "/08-Tiny5Mono.fnt",
+    [UI_FONT_BIG]   = FONT_DIR "/08-Tiny5Mono.fnt",
 };
 
 static int font_ids[UI_FONT_COUNT];

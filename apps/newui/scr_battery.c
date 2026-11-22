@@ -143,7 +143,7 @@ void ui_battery_log_init(void)
 /* --- the chart --- */
 
 #define HDR_Y     4                 /* the two lines, over the chart's top */
-#define HDR_ROW_H 22                /* right: the curve has fallen by then */
+#define HDR_ROW_H 16                /* right: the curve has fallen by then */
 #define CH_X0   38                  /* the plot area: all of the screen */
 #define CH_X1   (LCD_WIDTH - 14)
 #define CH_Y0   12

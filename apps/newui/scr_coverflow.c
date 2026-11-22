@@ -640,8 +640,8 @@ static bool play_album(int first)
 #define SL_X        26                  /* the panel */
 #define SL_W        (LCD_WIDTH - 2 * SL_X)
 #define SL_TOP      8
-#define SL_HEAD_H   (2 * font_get(ui_font(UI_FONT_ROW))->height + 6) /* two bold lines */
-#define SL_ROW_H    24
+#define SL_HEAD_H   (2 * font_get(ui_font(UI_FONT_ROW))->height + 6) /* two lines */
+#define SL_ROW_H    16
 #define SL_PAD      10
 #define SL_GROW     6                   /* frames growing out of the cover */
 

@@ -27,14 +27,16 @@
 #include <stdint.h>
 #include "lcd.h"
 
-/* --- design tokens (PLAN.md §2) --- */
+/* --- design tokens (PLAN.md §2) ---
+ * Sized for Tiny5 Mono: 9 px tall, 7 px ascent, 5 px cap height. PLAN.md
+ * §2 was written for the 20 px Noto faces, so the rows are tighter now. */
 
 #define UI_STATUS_H     22  /* status bar height */
 #define UI_MARGIN       12  /* side margin */
 #define UI_GAP           8
-#define UI_ROW_H        27  /* text row */
-#define UI_ART_ROW_H    54  /* row with a cover */
-#define UI_LINE2_ROW_H  43  /* row with a second line, no cover: 5 a screen */
+#define UI_ROW_H        16  /* text row: a 9 px glyph + 7 px of air */
+#define UI_ART_ROW_H    48  /* row with a cover: UI_THUMB fills the row */
+#define UI_LINE2_ROW_H  24  /* name + grey second line: two lines + 6 px */
 
 /* colours follow the theme (Dark or Light, ui_style.c) */
 enum ui_col {
@@ -94,11 +96,13 @@ bool ui_transition_run(int x, int y, int w, int h);
 /* --- fonts (ui_font.c) --- */
 
 enum ui_font {
-    UI_FONT_SMALL,  /* 14: times, counts, status bar */
-    UI_FONT_BODY,   /* 18: secondary text (artist, album, setting values) */
-    UI_FONT_ROW,    /* 20 bold: list rows (also the default UI font) */
-    UI_FONT_TITLE,  /* 22 bold: titles */
-    UI_FONT_BIG,    /* 40 bold, ASCII: fast-scroll letter, volume */
+    /* All five are Tiny5 Mono (9 px) for now; the slots stay separate so
+     * the sizes can diverge again without touching the callers. */
+    UI_FONT_SMALL,  /* times, counts, status bar */
+    UI_FONT_BODY,   /* secondary text (artist, album, setting values) */
+    UI_FONT_ROW,    /* list rows (also the default UI font) */
+    UI_FONT_TITLE,  /* titles */
+    UI_FONT_BIG,    /* fast-scroll letter, lock screen clock */
     UI_FONT_COUNT
 };
 
@@ -123,8 +127,8 @@ void ui_stroke_round_rect(int x, int y, int w, int h, int r, int stroke,
 void ui_fill_triangle_right(int x, int y, int w, int h, unsigned color);
 /* The ">" on rows that open something: bold, its right end at x_right,
  * centred in the band [y, y + h) */
-#define UI_CHEVRON_W 9
-#define UI_CHEVRON_H 15
+#define UI_CHEVRON_W 7
+#define UI_CHEVRON_H 11
 void ui_chevron(int x_right, int y, int h, unsigned color);
 /* Rounds the corners of what is drawn at x,y,w,h, painting outside them in bg */
 void ui_round_corners(int x, int y, int w, int h, int r, unsigned bg);
