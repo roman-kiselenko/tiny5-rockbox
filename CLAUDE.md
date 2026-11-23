@@ -1,8 +1,15 @@
-# Rockbox `newui` fork — HiFi Walker H2
+# HiFi Walker H2 Rockbox — `tiny5-rockbox`
 
-A stripped-down Rockbox tree for one player, the **HiFi Walker H2** (a rebrand of
-the AIGO Eros Q native; Ingenic X1000, MIPS), used as the base for a complete UI
-overhaul. Branch: `newui` (forked from upstream commit `212bb63ee4`).
+A stripped-down Rockbox tree for one player, the **HiFi Walker H2** (a rebrand
+of the AIGO Eros Q native; Ingenic X1000, MIPS), with a code-drawn UI and
+Bluetooth audio. The UI overhaul is **built**, not planned.
+
+Repository: https://github.com/roman-kiselenko/tiny5-rockbox (branch `master`).
+It is based on https://github.com/dismal-ad/h2-rockbox, the original H2 port
+(forked from upstream Rockbox at commit `212bb63ee4`, 145 commits of history).
+The published release v1.1 of the base repo is 12 commits behind `master`: it
+still uses the Noto Sans CJK UI font and has no System Status / Battery Usage
+screens.
 
 ## Device
 
@@ -14,6 +21,9 @@ overhaul. Branch: `newui` (forked from upstream commit `212bb63ee4`).
   memory by core code). No touchscreen.
 - Buttons: POWER, MENU, BACK, PLAY, PREV/NEXT, VOL_UP/VOL_DOWN, and a scroll
   wheel (`BUTTON_SCROLL_BACK`/`BUTTON_SCROLL_FWD`). Keymap: `apps/keymaps/keymap-erosq.c`.
+- Power locks the keys and blanks the display from any screen (`action.c`
+  softlock → `apps/newui/scr_lock.c`); one press wakes it after the backlight
+  timeout, held Power shuts the player off.
 
 ## Build
 
@@ -29,9 +39,15 @@ export PATH=$HOME/rockbox-toolchain/bin:$PATH
 ../src/tools/configure --target=erosqnative --type=s && make -j8 && make install && ./rockboxui
 ```
 
-Other build types still supported: `--type=w` (warble codec test tool), `--type=a<opts>` advanced builds (`l` logf, `i` logf to
-serial, `d` debug, `u` USB serial, `m` small C lib, `x` LTO). Profiling (`p`)
-does not build on MIPS (also broken upstream).
+Other build types still supported: `--type=w` (warble codec test tool),
+`--type=a<opts>` advanced builds (`l` logf, `i` logf to serial, `d` debug,
+`u` USB serial, `m` small C lib, `x` LTO). Profiling (`p`) does not build on
+MIPS (also broken upstream).
+
+The UI fonts are committed as `.fnt` (`fonts/newui/`), so a normal build needs
+no FreeType. To regenerate them: `make -C tools convttf` (needs
+libfreetype-dev) plus `fonts/newui/mkfonts.sh` — only needed for the Noto CJK
+faces; Tiny5 Mono comes from `convbdf`.
 
 Simulator keys: arrows = scroll wheel / prev / next, Enter = play/select,
 Backspace = back, Insert = menu, PgUp/PgDn = volume, Esc = power.
@@ -39,7 +55,9 @@ Backspace = back, Insert = menu, PgUp/PgDn = volume, Esc = power.
 Install on the player: unzip `rockbox.zip` to the SD card root (it contains
 `.rockbox/`). The owner's card keeps settings and Bluetooth pairings in
 `.rockbox/` (`config.cfg`, `bt_config.conf`, `bt_devices.txt`): unzip over the
-existing folder (`unzip -o`) and check those files are unchanged.
+existing folder (`unzip -o`) and check those files are unchanged. The archive
+is ~15 MB because it carries the Noto CJK faces (~27 MB on the card) as well as
+Tiny5 Mono (452 KB); the UI only uses Tiny5.
 
 ## Verifying changes
 
@@ -47,10 +65,11 @@ A change is good when the fresh builds pass: firmware, simulator, warble
 (plus a logf build for debug-path changes). `../newui-tools/check.sh` is the
 commit gate (firmware zip + simulator install, no new warnings);
 `../newui-tools/simrun.sh <script> <shotdir>` runs the simulator headless from
-a key script and writes screenshots (see `uisimulator/common/sim_script.c`);
-`../newui-tools/loc.py [commit]` counts code lines. For pure cleanups,
-`mipsel-elf-size rockbox.elf` and the `.codec` sizes must be unchanged. Only
-the version string may differ.
+a key script and writes screenshots (see `uisimulator/common/sim_script.c`) —
+that is how `docs/screens/` is produced, and every screen is checked there
+before it goes on the device; `../newui-tools/loc.py [commit]` counts code
+lines. For pure cleanups, `mipsel-elf-size rockbox.elf` and the `.codec` sizes
+must be unchanged. Only the version string may differ.
 
 ## What was removed from upstream (and must not come back by accident)
 
@@ -66,31 +85,34 @@ the version string may differ.
   no-op stubs**; call sites remain and can be deleted as screens are rewritten.
 - Plugins: no plugins, no loader and no menu entries for them;
   `plugin_get_buffer()` (apps/plugin.c) still returns the 2 MiB scratch buffer.
-- The theme (skin) engine and everything around it (phase 8 of the new UI):
-  `apps/gui/skin_engine/`, `lib/skin_parser/`, the skinned status bar and
+- The theme (skin) engine and everything around it (phase 8 of the new UI,
+  done): `apps/gui/skin_engine/`, `lib/skin_parser/`, the skinned status bar and
   lists, Theme Settings and the theme settings, the quick screen (its button
   opens Shortcuts), `tools/checkwps` and the CheckWPS build type, `wps/`,
-  `backdrops/`, the bitmap fonts except the system font, and playback's
-  album art buffering for themes.
+  `backdrops/`, bitmap fonts except the UI font and the system font, and
+  playback's album art buffering for themes.
 
-## Bluetooth (branch `newui-bt`)
+Code size: about **296k** lines of core code (`apps`, `firmware`, `lib`,
+`uisimulator`, Bluedroid excluded) against roughly 1.6M upstream.
+
+## Bluetooth
 
 Ported from https://github.com/thiagoelg/h2-rockbox-bt (branch `h2-bt`, git
 remote `h2bt`): the 19 code commits from `4e3333fd06` (Skye's Bluedroid port)
 through `bde005189c` (Thiago Lugli's manager/menu/settings), cherry-picked with
 `-x`. Their README, GitHub workflow and manual commits were not taken.
 
-- Bluedroid (ESP-IDF 6.0.1 Bluetooth stack) in `lib/bluedroid/`: ~200k code
-  lines; A2DP source with SBC, AVRCP. Host side only: the H2's Broadcom
-  BCM4343A1 is driven over UART (HCI H4) by
+- Bluedroid (ESP-IDF 6.0.1 Bluetooth stack) in `lib/bluedroid/`: A2DP source
+  with SBC and AVRCP — headphone play/pause, next and previous work. Host side
+  only: the H2's Broadcom BCM4343A1 is driven over UART (HCI H4) by
   `firmware/target/mips/ingenic_x1000/erosqnative/hci-erosqnative.c`, with its
   patchram firmware in `BCM4343A1_*.c`. **hw4 only.**
 - `HAVE_BLUETOOTH` and `BT_HEAP_SIZE` (256 KiB, TLSF heap) are in
   `config/erosqnative.h`. Audio goes out through a second PCM sink,
   `PCM_SINK_BLUETOOTH`.
 - App side: `apps/bluetooth/bluetooth.c` (manager thread, paired devices in
-  `/.rockbox/bt_devices.txt`), `apps/menus/bluetooth_menu.c`
-  (Home > Bluetooth), settings `bt_enabled` (default off),
+  `/.rockbox/bt_devices.txt`), reached from **Home**, not from the settings menu
+  (`apps/menus/bluetooth_menu.c`). Settings: `bt_enabled` (default off),
   `bt_high_quality`, `bt_volume_sync`. With `BT_DEBUG` it logs to `/bt_log.txt`.
 - Simulator: `uisimulator/common/hci-sim.c` talks to a host serial HCI device.
 - Porting notes: `uart_rx_timeout()` was re-applied by hand on top of
@@ -104,26 +126,51 @@ through `bde005189c` (Thiago Lugli's manager/menu/settings), cherry-picked with
   headers (`sdkconfig.h`, `bt_user_config.h`, `bluedroid_user_config.h`,
   `bt_target.h`, `dyn_mem.h`, `bt_common.h`) were left as is; to enable a
   disabled Bluedroid feature, restore the code from before that commit.
-- Cost: firmware text +425 KB, `rockbox.zip` 2.4 -> 2.7 MB.
-- Tested on the owner's H2 (hw4): Bluetooth audio works.
+- Cost: firmware text +425 KB. Tested on the owner's H2 (hw4): Bluetooth audio
+  works.
+
+## Battery and power work
+
+See `docs/newui/POWER.md` for the plan, measurements and what is left.
+Done: no drawing while the screen is off; the LCD waits for the end of a frame
+on interrupts instead of polling; the Broadcom controller's sleep mode is
+enabled (BT_WAKE asserted only while sending); the DAC and headphone amp are
+off when playing over Bluetooth. X1000 CPU-idle statistics are always built in
+(System › Debug › CPU idle) and there is a temporary 1008 / 252 MHz switch in
+the target debug menu. Not done: CPU frequency scaling (the biggest remaining
+gain).
+
+Battery usage is logged (a point every 5%, sampled every 30 s) to
+`.rockbox/newui/battery.txt` and shown as a chart in System › View Battery
+Usage (`apps/newui/scr_battery.c`).
 
 ## Tools
 
-`../newui-tools/` (outside the repo): `ifeval.py` (per-build #if
-evaluation), `macrovals.py` (resolve macro values per build), `prune.py`
-(find unused files). Their docstrings explain usage.
+`../newui-tools/` (outside the repo): `check.sh`, `simrun.sh`, `loc.py`,
+`ifeval.py` (per-build #if evaluation), `macrovals.py` (resolve macro values per
+build), `prune.py` (find unused files). Their docstrings explain usage.
 
-## UI overhaul: decisions
+## The UI: decisions
 
-The full plan (screens, layouts at 320×240, phases, risks) is in
-`docs/newui/PLAN.md`.
+The design, as built — grid, colours, fonts, rows, motion, every screen, and
+how it differs from the original plan — is in `docs/newui/PLAN.md`.
 
-
-1. **Code-drawn UI, no themes.** The new UI is drawn directly in C
+1. **Code-drawn UI, no themes.** The UI is drawn directly in C
    (`apps/newui/`); the theme engine is gone.
-2. **Keep the music database and add iPod-style Cover Flow** album browsing
-   (album covers that slide/scroll with the wheel). The database format may be
-   changed for this.
+2. **Not an iPod-style design.** The iPod classic and the Q2 Pod spec were the
+   starting reference and are no longer followed: text-first screens, one
+   monospace font, flat selection bands, drawn shapes instead of bitmaps. Cover
+   Flow stayed because it works, not because the iPod had it. Some comments in
+   `apps/newui/` still say "as on the iPod" — they are leftovers.
+3. **Font: Tiny5 Mono** (9 px, SIL OFL 1.1,
+   https://github.com/Gissio/font_Tiny5Mono) for every UI slot; rows are 16 px,
+   art rows 48 px, two-line rows 24 px, status bar 22 px. Latin, Greek,
+   Cyrillic and IPA only.
+4. **CJK is deferred, not dropped.** The Noto Sans CJK JP faces
+   (`fonts/newui/newui-*.fnt`) are still generated and installed on the card;
+   the UI does not use them. They are the basis for a Chinese/Japanese/Korean
+   build.
+5. **Cover Flow over the music database.**
    - Database: `apps/tagcache.c/.h` (on-disk format, `TAGCACHE_MAGIC`, files
      `database_*.tcd`), `apps/tagtree.c` + `apps/tagnavi.config` (browse menus).
      Any on-disk format change **must bump `TAGCACHE_MAGIC`** so old databases
@@ -132,22 +179,55 @@ The full plan (screens, layouts at 320×240, phases, risks) is in
      `apps/recorder/jpeg_load.c`, `bmp.c`, `resize.c` (decode + scale).
      `HAVE_ALBUMART` and `HAVE_JPEG` are enabled.
    - Decoding JPEGs while scrolling is too slow on the X1000: covers are
-     saved pre-scaled on the card (`/.rockbox/newui/thumbs`, 46 and 120 px,
-     `apps/newui/ui_thumb.c`) with a small RAM cache.
-3. Layout for 320×240 driven by the scroll wheel; build and check every
-   screen in the simulator first.
+     decoded once and saved pre-scaled on the card
+     (`/.rockbox/newui/thumbs`, 48 px for list rows = `UI_THUMB`, 150 px for
+     Cover Flow = `UI_COVER`, plus a 1-byte "no art" marker), with a RAM cache
+     of 24 thumbs and 16 covers (`apps/newui/ui_thumb.c`). Background cover
+     building pauses when the screen is off or music is playing.
+6. **Look settings** (`Settings › General › Display`): `newui_theme`
+   (dark/light), `newui_style` (classic accent band / minimal light band),
+   `newui_accent` (six colours), `newui_clock`. Plus `skip_startup_anim`.
+7. Everything is built and checked in the simulator at 320×240 before the
+   device, driven by the scroll wheel.
 
 ## Where the UI code lives
 
-- `apps/newui/`: the new UI (`ui.h` has the design tokens and APIs): Home
-  (`scr_home.c`), Now Playing (`scr_np.c`), Cover Flow (`scr_coverflow.c`),
-  lock screen, keyboard, pop-ups, status bar, fonts, album art and thumbnails
-- `apps/root_menu.c`: screen switching under Home and the start screen
+- `apps/newui/`: the new UI, `ui.h` being the design tokens and API.
+  - screens: `scr_home.c`, `scr_np.c` (Now Playing, driven by `gui/wps.c`),
+    `scr_coverflow.c` (+ its album sheet), `scr_stats.c` (System Status),
+    `scr_battery.c` (Battery Usage chart), `scr_lock.c`
+  - widgets: `ui_status.c` (status bar), `ui_popup.c` (panels, yes/no, choices),
+    `ui_keyboard.c` (text entry), `ui_gallery.c` (debug-menu UI gallery)
+  - drawing and behaviour: `ui_draw.c` (rects, gradients, rounded corners,
+    alpha, text with ellipsis, the drill chevron), `ui_style.c` (themes,
+    selection styles, accents), `ui_font.c`, `ui_art.c` (current album cover),
+    `ui_thumb.c` (cached covers), `ui_wheel.c` (wheel ramp, fast-scroll letter),
+    `ui_transition.c` (slide between list levels), `ui_time.c` (µs frame timer)
+- `apps/root_menu.c`: screen switching under Home and the start screen;
+  `apps/main.c`: the boot animation
 - `apps/menus/`, `apps/menu.c`: settings menus
-- `apps/gui/list.c` + `bitmap/list.c` (drawing): every list; `viewport.c`:
-  the status bar / full screen stack; `statusbar.c`: feeds the status bar
+- `apps/gui/list.c` + `apps/gui/bitmap/list.c`: every list, restyled in one place
+- `apps/gui/viewport.c`: the status bar / full-screen stack;
+  `apps/gui/statusbar.c`: feeds it
 - `apps/tree.c`, `apps/filetree.c`: file browser; `apps/tagtree.c`: database browser
 - `apps/gui/wps.c`: Now Playing's logic (drawn by `newui/scr_np.c`);
   `apps/onplay.c`: context menu
 - `apps/settings_list.c`: all settings definitions
 - `firmware/drivers/lcd-16bit*.c`, `firmware/export/lcd.h`: LCD drawing API
+
+## References
+
+- `docs/newui/PLAN.md` — the design as built, with the deltas from the original
+  iPod-era draft.
+- `docs/newui/POWER.md` — battery review, measurements, remaining steps.
+- `docs/README` — build and install in detail; `fonts/README` — the rules for
+  fonts in this tree; `docs/UISIMULATOR` is upstream's generic simulator doc.
+- **`tutorial.md`** — a long Rockbox API tutorial (LCD drawing, drawmodes,
+  text, buttons and tick timing, menus, yes/no, keyboard input, file I/O,
+  `configfile`, battery/backlight/RTC, the quick-reference card at the end).
+  Written for iPod Video **plugins**, so the calls appear as `rb->lcd_draw()`
+  etc.; in this tree the same APIs are the core ones — `lcd_draw()`,
+  `lcd_set_foreground()`, `font_getstringsize()`, `button_get_timeout()`,
+  `HZ` ticks — with no plugin wrapper. Use it as a reference for Rockbox API
+  signatures and idioms when writing UI or screen code; there is no plugin
+  loader here, so nothing in it can actually run.

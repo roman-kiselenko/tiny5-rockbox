@@ -223,8 +223,11 @@ pass with no new warnings.
   original plan.
 - [docs/newui/POWER.md](docs/newui/POWER.md) — the battery review and plan.
 - [docs/README](docs/README) — build and install in detail.
-- `tutorial.md` is a Rockbox plugin-writing guide kept for reference; this
-  tree has no plugin loader.
+- `tutorial.md` is a Rockbox API tutorial (drawing, drawmodes, buttons and tick
+  timing, menus, file I/O, config files, battery/backlight/RTC, plus a quick
+  reference card). It was written for iPod Video plugins, so it reads `rb->lcd_draw()`
+  where this tree uses `lcd_draw()`; it is kept as a reference for Rockbox API
+  signatures and idioms when writing screen code. There is no plugin loader here.
 
 ## Credits and license
 
