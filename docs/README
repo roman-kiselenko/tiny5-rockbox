@@ -9,7 +9,8 @@ Build Rockbox for the HiFi Walker H2
 
 This tree builds for one player only: the HiFi Walker H2 / AIGO Eros Q native
 (target 'erosqnative'). It cannot build bootloaders; the player needs the
-official Rockbox bootloader.
+official Rockbox bootloader. It is based on github.com/dismal-ad/h2-rockbox,
+the original H2 port of Rockbox.
 
 1. Install the tools needed to build (Ubuntu/Debian; package names differ on
    other systems). libsdl2-dev is only needed for the simulator.
@@ -19,8 +20,8 @@ official Rockbox bootloader.
 
 2. Download the code.
 
-   $ git clone https://github.com/dismal-ad/h2-rockbox.git
-   $ cd h2-rockbox
+   $ git clone https://github.com/roman-kiselenko/tiny5-rockbox.git
+   $ cd tiny5-rockbox
 
 3. Build the MIPS cross-compiler (mipsel-elf-gcc). This is needed once and
    takes a while. RBDEV_TARGET=i selects MIPS; RBDEV_PREFIX is where it is

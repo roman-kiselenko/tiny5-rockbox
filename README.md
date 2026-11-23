@@ -4,10 +4,12 @@ Rockbox for the **HiFi Walker H2** — the AIGO Eros Q native (Ingenic X1000,
 MIPS, 320×240 16-bit LCD, 32 MB RAM, scroll wheel) — with a UI drawn by hand
 in C, album covers throughout, and Bluetooth audio.
 
-Forked from upstream [Rockbox](https://www.rockbox.org/) at commit
-`212bb63ee4` and cut down to this one player: 145 commits since, one
-configure target (`erosqnative`), one binary for every hardware revision
-(the firmware reads the revision from the bootloader at runtime).
+This repository is **[tiny5-rockbox](https://github.com/roman-kiselenko/tiny5-rockbox)**.
+It is based on **[dismal-ad/h2-rockbox](https://github.com/dismal-ad/h2-rockbox)**,
+the original HiFi Walker H2 port: that tree (forked from upstream
+[Rockbox](https://www.rockbox.org/) at commit `212bb63ee4`) supplies the
+`erosqnative` target, the Bluetooth port and the first version of the UI; this
+repo carries the current work on top of it.
 
 - The UI overhaul is **code-drawn** (`apps/newui/`): the skin/theme engine and
   WPS files are gone, and icons are glyphs of the UI font plus drawn shapes
@@ -18,17 +20,18 @@ configure target (`erosqnative`), one binary for every hardware revision
 
 ## Download
 
-Grab the archive from the [releases page](https://github.com/dismal-ad/h2-rockbox/releases)
+Grab the archive from the [releases of this repo](https://github.com/roman-kiselenko/tiny5-rockbox/releases)
 and unzip it to the root of the SD card — it contains the `.rockbox` folder.
 Unzipping over an existing install keeps your settings and Bluetooth pairings
 (`unzip -o rockbox.zip -d /path/to/sdcard`), because `.rockbox/config.cfg`,
 `bt_config.conf` and `bt_devices.txt` are not in the archive.
 
-The newest release is **v1.1** (`rockbox-h2-v1.1.zip`, 15 MB). It predates the
-switch to the Tiny5 Mono font and the System Status / Battery Usage screens;
-if you want those, build [master](#build-from-source) or wait for the next
-release. The 15 MB is mostly fonts: the Noto Sans CJK faces (about 27 MB on
-the card) plus Tiny5 Mono. On master the UI is Tiny5 Mono only, so the
+Until a release is published here, either [build from source](#build-from-source)
+or use the base project's **v1.1** archive
+([rockbox-h2-v1.1.zip](https://github.com/dismal-ad/h2-rockbox/releases/tag/v1.1),
+15 MB), which predates the Tiny5 Mono font and the System Status / Battery
+Usage screens. The 15 MB is mostly fonts: the Noto Sans CJK faces (about 27 MB
+on the card) plus Tiny5 Mono. The UI here uses Tiny5 Mono only, so the
 `newui-*.fnt` files are dead weight — deleting them saves 27 MB and changes
 nothing (see [fonts](#fonts-and-languages)).
 
@@ -96,11 +99,12 @@ graphics.
 
 ### Fonts and languages
 
-On master the whole UI is **Tiny5 Mono** (9 px tall, SIL OFL 1.1), so a row is
-16 px and the readout screens fit the panel. It carries Latin, Greek, Cyrillic
-and IPA, so Russian and other Cyrillic text display, using Rockbox's normal
-language files and codepages. (v1.1 still draws everything in Noto Sans CJK,
-which was the UI font before the switch to Tiny5.)
+On this repo the whole UI is **Tiny5 Mono** (9 px tall, SIL OFL 1.1), so a row
+is 16 px and the readout screens fit the panel. It carries Latin, Greek,
+Cyrillic and IPA, so Russian and other Cyrillic text display, using Rockbox's
+normal language files and codepages. (The v1.1 build of the base repo still
+draws everything in Noto Sans CJK, which was the UI font before the switch to
+Tiny5.)
 
 **CJK is not supported yet.** The Noto Sans CJK JP faces (14/18/20/22/40 px,
 SIL OFL 1.1) from an earlier iteration of the UI are still in
@@ -181,8 +185,8 @@ Tested on Ubuntu. Full steps, including the simulator, are in
 sudo apt install build-essential git perl zip unzip wget flex bison texinfo
 
 # get the code
-git clone https://github.com/dismal-ad/h2-rockbox.git
-cd h2-rockbox
+git clone https://github.com/roman-kiselenko/tiny5-rockbox.git
+cd tiny5-rockbox
 
 # build the MIPS cross-compiler once (takes a while), into ~/rockbox-toolchain
 RBDEV_PREFIX=$HOME/rockbox-toolchain RBDEV_TARGET=i tools/rockboxdev.sh
@@ -220,8 +224,17 @@ pass with no new warnings.
 - `tutorial.md` is a Rockbox plugin-writing guide kept for reference; this
   tree has no plugin loader.
 
-## License
+## Credits and license
 
-GNU General Public License v2, like Rockbox. See [docs/COPYING](docs/COPYING).
-Tiny5 Mono and Noto Sans CJK are under the SIL Open Font License 1.1
-(`fonts/COPYING` and `fonts/newui/LICENSE-NotoSansCJK.txt`).
+- Based on [dismal-ad/h2-rockbox](https://github.com/dismal-ad/h2-rockbox),
+  which in turn is a cut-down fork of upstream
+  [Rockbox](https://www.rockbox.org/) (commit `212bb63ee4`, 145 commits of
+  history in this tree), reduced to a single configure target (`erosqnative`)
+  and one binary for every hardware revision (the firmware reads the revision
+  from the bootloader at runtime).
+- Bluetooth from [thiagoelg/h2-rockbox-bt](https://github.com/thiagoelg/h2-rockbox-bt)
+  (Thiago Lugli), built on Skye's Bluedroid port.
+- Code under the GNU General Public License v2, like Rockbox. See
+  [docs/COPYING](docs/COPYING). Tiny5 Mono and Noto Sans CJK are under the SIL
+  Open Font License 1.1 (`fonts/COPYING` and
+  `fonts/newui/LICENSE-NotoSansCJK.txt`).
