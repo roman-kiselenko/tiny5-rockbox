@@ -24,7 +24,8 @@
 #include "settings.h"
 #include "ui.h"
 
-/* Tiny5 Mono, a 9 px pixel font (SIL OFL 1.1): one face for the whole UI,
+/* Tiny5 Mono, a 9 px pixel font (SIL OFL 1.1,
+ * https://github.com/Gissio/font_Tiny5Mono): one face for the whole UI,
  * installed by buildzip from fonts/newui. Glyphs load from the card on
  * demand into the font's cache, so the file's size costs disk, not RAM.
  * All five slots point at the same file: keeping the enum lets the sizes

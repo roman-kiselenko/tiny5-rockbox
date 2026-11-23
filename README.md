@@ -99,7 +99,8 @@ graphics.
 
 ### Fonts and languages
 
-On this repo the whole UI is **Tiny5 Mono** (9 px tall, SIL OFL 1.1), so a row
+On this repo the whole UI is **Tiny5 Mono** (9 px tall, SIL OFL 1.1) —
+[Gissio/font_Tiny5Mono](https://github.com/Gissio/font_Tiny5Mono) — so a row
 is 16 px and the readout screens fit the panel. It carries Latin, Greek,
 Cyrillic and IPA, so Russian and other Cyrillic text display, using Rockbox's
 normal language files and codepages. (The v1.1 build of the base repo still
@@ -217,8 +218,9 @@ pass with no new warnings.
 
 ## Further reading
 
-- [docs/newui/PLAN.md](docs/newui/PLAN.md) — the UI design: grid, rows,
-  colours, motion, and each screen as built.
+- [docs/newui/PLAN.md](docs/newui/PLAN.md) — the UI as designed and built:
+  grid, colours, fonts, rows, motion, every screen, and how it differs from the
+  original plan.
 - [docs/newui/POWER.md](docs/newui/POWER.md) — the battery review and plan.
 - [docs/README](docs/README) — build and install in detail.
 - `tutorial.md` is a Rockbox plugin-writing guide kept for reference; this
@@ -235,6 +237,7 @@ pass with no new warnings.
 - Bluetooth from [thiagoelg/h2-rockbox-bt](https://github.com/thiagoelg/h2-rockbox-bt)
   (Thiago Lugli), built on Skye's Bluedroid port.
 - Code under the GNU General Public License v2, like Rockbox. See
-  [docs/COPYING](docs/COPYING). Tiny5 Mono and Noto Sans CJK are under the SIL
-  Open Font License 1.1 (`fonts/COPYING` and
+  [docs/COPYING](docs/COPYING). Tiny5 Mono
+  ([Gissio/font_Tiny5Mono](https://github.com/Gissio/font_Tiny5Mono)) and Noto
+  Sans CJK are under the SIL Open Font License 1.1 (`fonts/COPYING` and
   `fonts/newui/LICENSE-NotoSansCJK.txt`).

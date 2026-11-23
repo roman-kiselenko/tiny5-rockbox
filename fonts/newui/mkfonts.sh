@@ -25,8 +25,8 @@ $C -p 22 -s 32 -l 65535 -o newui-22bold.fnt $NOTO/NotoSansCJK-Bold.ttc     # tit
 # big letter / numbers: ASCII only, which needs less room than Han
 $C -TA 25 -TD 30 -p 40 -s 32 -l 126 -o newui-40bold.fnt $NOTO/NotoSansCJK-Bold.ttc
 
-# Tiny5 Mono (SIL OFL 1.1, 08-Tiny5Mono.bdf): a 9 px pixel font, Latin,
-# Greek, Cyrillic and IPA (no CJK or Hangul). The .fnt is committed like
-# the Noto ones; convbdf needs no scaling, the font is used at its native
-# size for every UI slot.
+# Tiny5 Mono (SIL OFL 1.1, https://github.com/Gissio/font_Tiny5Mono,
+# 08-Tiny5Mono.bdf): a 9 px pixel font, Latin, Greek, Cyrillic and IPA (no CJK
+# or Hangul). The .fnt is committed like the Noto ones; convbdf needs no
+# scaling, the font is used at its native size for every UI slot.
 convbdf -f 08-Tiny5Mono.bdf   # writes 08-Tiny5Mono.fnt in this directory

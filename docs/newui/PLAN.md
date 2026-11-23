@@ -1,43 +1,53 @@
-# New UI: master plan
+# New UI: design notes
 
-An iPod-classic-style, code-drawn UI for Rockbox on the HiFi Walker H2.
-Status: **plan only**. Nothing here is implemented yet.
+**Status: built.** Everything below describes the UI as it is on the device.
+The plan started on 2026-10-15 as an iPod classic homage — the same 320×240
+panel, Cover Flow, the silver status bar. **We no longer follow the iPod's
+design.** What came out is its own interface: text-first, one monospace font,
+flat bands for selection, drawn shapes instead of bitmaps, and album covers as
+the only images. Where old comments in `apps/newui/` still say "as on the
+iPod", they are leftovers from the first draft, not a design rule. The Q2 Pod
+spec was dropped with it.
 
-Design references: the iPod classic (which has the same 320×240 screen as the
-H2) and Q2 Pod's written spec (`docs/ipod.md` in github.com/DiamondBond/q2-pod,
-MIT, 375×320). Measurements below are re-derived for 320×240; nothing is
-copied from Q2 Pod's code (it patches Shanling's binary and can't be reused).
+Deltas from the original plan, in one place:
+
+| Draft (2026-10) | Now |
+|---|---|
+| Anti-aliased sans-serif (Inter / Source Sans 3 / Nimbus Sans) | **Tiny5 Mono**, 9 px, one face for the whole UI |
+| Text rows 27 px, art rows 54 px | **16 px** rows, **48 px** art rows, 24 px two-line rows |
+| Rounded selection card with 6 px corners (Minimal) | Flat band, no corners, no gloss |
+| Home: menu on the left, album cover on the right | Full-width text list; the cover panel was removed (CPU cost) |
+| Now Playing: big art + text column, page dots | Console-style readout: text lines, cover in the corner, one progress band |
+| Battery as an icon | Battery as a number, `37%`, red under 20%, `+` while charging |
+| Quick screen | Removed; its button opens Shortcuts |
+| CJK text via Noto Sans CJK | Deferred: the faces are still generated and installed, the UI does not use them |
 
 ---
 
 ## 1. Approach
 
-**The new UI is part of the core, not plugins.**
+**The new UI is part of the core, not plugins.** The plugin loader is gone from
+this tree; putting the main screens behind a plugin API boundary would separate
+them from the playback, database, settings and list code they constantly touch.
+New code lives in `apps/newui/`.
 
-- The plugin loader is gone from this tree, and re-adding it only to host the
-  UI would put the main screens behind an API boundary they constantly need
-  to cross (playback, database, settings, lists, album art).
-- The simulator runs core code directly, so every screen can be built and
-  tested on the PC first, with no plugin needed.
-- New code lives in its own directory, `apps/newui/`, so it stays easy to
-  review, measure and debug.
+**Existing menus are restyled, not rewritten.** `apps/gui/list.c` and
+`apps/gui/bitmap/list.c` draw every list — the file browser, the database
+browser, playlists, every settings menu — in the new style. Only Home, Now
+Playing, Cover Flow, the System screens and the pop-ups have their own code.
 
-Instead of plugins, three test aids are part of the plan:
+**The theme engine is gone** (phase 8, done): `apps/gui/skin_engine/`,
+`lib/skin_parser/`, `wps/`, backdrops, Theme Settings, CheckWPS. Now Playing's
+*logic* still lives in `apps/gui/wps.c`; its *drawing* is `apps/newui/scr_np.c`.
+Voice (`apps/talk.h`, `apps/voice_thread.h`) is a no-op stub.
 
-| Test aid | What it is | Where it runs |
+**Test aids instead of plugins:**
+
+| Aid | What it is | Where |
 |---|---|---|
-| **UI gallery** | A debug-menu screen that shows each widget and screen with fake data: lists, Now Playing, Coverflow, pop-ups | Simulator and device |
-| **Simulator script runner** | Plays a scripted key sequence and saves a screenshot at each step. Lets me check layouts visually by reading the screenshots | Simulator (and `Xvfb`, see §7) |
-| **Frame timer** | Logs how long each frame takes to draw (logf), to keep animations smooth | Device |
-
-**Existing menus are restyled, not rewritten.** About 40 places use Rockbox's
-list widget and 27 use its menu system, including every settings menu. Giving
-that list widget the new look restyles all of them at once. Only the main
-screens (Home, Now Playing, Library, Coverflow) get new code.
-
-**The theme engine stays until the new screens replace it**, then goes
-(phase 8). Until then, a setting switches between the old and new Now Playing
-so the device always has a working UI.
+| UI gallery | Debug-menu screen ("New UI gallery") drawing each widget and screen with fake data | Simulator and device |
+| Simulator script runner | `RB_SCRIPT` key script, `RB_SHOTDIR` screenshots — scripted presses, PNG per step | Simulator, headless with `SDL_VIDEODRIVER=dummy` |
+| Frame timer | `ui_time.c`, a µs counter for measuring frame cost | Device |
 
 ---
 
@@ -47,7 +57,7 @@ so the device always has a working UI.
 
 ```
 y   0 ┌────────────────────────────────────────┐
-      │ ▶          12:41               ᛒ ▮▮▮▯  │  status bar, 22 px
+      │ H2                12:41      BT  37%  │  status bar, 22 px
 y  22 ├────────────────────────────────────────┤
       │                                        │
       │          content area 320 × 218        │
@@ -55,233 +65,227 @@ y  22 ├───────────────────────�
 y 240 └────────────────────────────────────────┘
 ```
 
-- Side margin **12 px**. Gap between elements **8 px**.
-- Everything is drawn on black. The H2's screen has square corners, so unlike
-  Q2 Pod no corner insets are needed.
+- Side margin **12 px**, gap between elements **8 px**.
+- Background is black in the Dark theme, white in the Light theme.
+- The screen has square corners; nothing is inset.
 
-### Colours (Minimal theme, from Q2 Pod)
+### Colours
 
-| Use | Colour |
-|---|---|
-| Background | `#000000` |
-| Primary text | `#FFFFFF` |
-| Secondary text (artist, counts, times) | `#AAAAAA` |
-| Muted text | `#8C8C8C` |
-| Selection card | `#EEEEEC`, text on it `#171717`, secondary `#484848` |
-| Progress track / fill | `#1C1C1C` / `#EEEEEC` |
-| Accent (Classic theme, user choice) | default Graphite `#6E6E6E` |
+Both themes share the layout; only the palette changes (`ui_style.c`). The
+accent is one of six colours (Graphite, Blue, Red, Green, Purple, Orange).
 
-### Fonts
-
-Rockbox supports anti-aliased fonts, and `tools/convttf.c` converts TrueType
-to Rockbox's format. Plan: one open-licensed sans-serif (Inter or Source
-Sans 3, both OFL), converted at fixed sizes:
-
-| Name | Size | Used for |
+| Use | Dark | Light |
 |---|---|---|
-| `ui-small` | 12 px | Times, "3 of 12", status bar clock |
-| `ui-body` | 15 px | List rows, artist/album |
-| `ui-title` | 18 px | Now Playing title, screen titles |
-| `ui-big` | 40 px | Fast-scroll letter, volume number |
+| Background | `#000000` | `#FFFFFF` |
+| Primary text | `#FFFFFF` | `#141414` |
+| Secondary text | `#AAAAAA` | `#5E5E5E` |
+| Muted text | `#8C8C8C` | `#8C8C8C` |
+| Selection (Minimal) | `#EEEEEC` / text `#171717` | `#D6D6D6` / text `#141414` |
+| Selection (Classic) | the accent | the accent |
+| Progress track / fill | `#1C1C1C` / `#EEEEEC` | `#DCDCDC` / the accent |
+| Status bar band | `#3A3A3E` → `#161618`, hairline `#444448` | `#F4F4F4` → `#BEC0C2`, hairline `#8C8C90` |
+| Pop-up panel | `#262626` | `#F2F2F2` |
+| Cover placeholder | `#1C1C1C` / `#8C8C8C` | `#5C5C62` / `#D4D4D8` |
+
+### Font
+
+One font, **Tiny5 Mono** — [Gissio/font_Tiny5Mono](https://github.com/Gissio/font_Tiny5Mono),
+SIL OFL 1.1, 9 px tall, 7 px ascent, 5 px cap height, 6 px per character. `ui_font()` has five slots — small, body, row, title, big — all pointing
+at the same face today; the enum stays so the sizes can diverge later without
+touching the callers.
+
+The font is installed by `buildzip.pl` from `fonts/newui/`; glyph bitmaps are
+loaded from the card into the font cache on demand, so the file size costs disk
+space, not RAM. Icons are glyphs, not bitmaps: `⏵ ⏸ ⏹ ⏩ ⏪ ⏺ 🔒`, `BT` for
+Bluetooth, `>` for rows that open something.
+
+CJK (Chinese, Japanese, Korean) is not in the UI yet. Noto Sans CJK JP faces
+(14/18/20/22/40 px) are still generated by `fonts/newui/mkfonts.sh` with
+`tools/convttf` and installed on the card; they are the starting point for a
+CJK build, and their `.fnt` output is committed so a normal build needs no
+FreeType.
 
 ### Rows
 
-| Row type | Height | Visible | Contents |
+| Row | Height | Fits | Contents |
 |---|---|---|---|
-| Text row | 27 px | 8 | Label, optional value or chevron `›` on the right |
-| Art row | 54 px | 4 | 46 px cover, title, grey second line |
+| Text row (`UI_ROW_H`) | 16 px | 13 in the content area | Label, optional grey value on the right, `>` on rows that open something |
+| Two-line row (`UI_LINE2_ROW_H`) | 24 px | 9 | Name, grey second line |
+| Art row (`UI_ART_ROW_H`) | 48 px | 4 | A `UI_THUMB` (48 px) cover filling the row, name + grey second line after it |
 
-Selection: a 6 px inset card with 6 px rounded corners (Minimal), or a
-full-width accent bar (Classic). Long text is shortened with "…" and scrolls
-only on the selected row.
+Selection is one flat band in the selection colour, edge to edge, exactly as
+Home draws it — no card, no border, no gloss (`ui_selection()`). Long text is
+shortened with `…`; only the selected row's text scrolls. A 3 px scrollbar sits
+on the right when a list is longer than the page. Covers down the left edge of a
+list touch each other, with a hairline under the text.
 
 ### Motion
 
-| Motion | Spec |
+| Motion | As built |
 |---|---|
-| List scrolling | Smooth, pixel-based; selection moves, the list follows |
-| Wheel speed-up | Steps per tick grow with spin speed (like Q2 Pod's ramp) |
-| Page change | Slide left/right, ~150 ms; skipped if the device can't keep 30 fps |
-| Fast-scroll letter | Shown after 300 ms of fast spinning in lists of 16+ rows; hides 400 ms after |
+| Wheel speed-up | Steps closer than 80 ms apart in the same direction count as one spin; after 300 ms of spinning each step moves 2 rows, after 800 ms 4, after 1.5 s 8. Only lists of more than 16 items speed up |
+| Fast-scroll letter | While the step is above 1, the selected row's first letter (leading "The ", "A ", "An " skipped) is drawn as a 72 px rounded box in the middle of the list; it disappears 400 ms after the last fast step |
+| Page change | Slide left/right: the screen below the status bar is copied before the level changes, then 6 frames slide it away. Skipped if the next draw is more than 500 ms away |
+| Cover Flow | 90 ms for the side covers to reach the flow layout, 150 ms for the centre cover to turn to face you; capped at 30 frames/s while music plays |
 
 ---
 
 ## 3. Controls
 
-The H2 has a wheel with a centre button (`PLAY`), and Menu, Back, Prev,
-Next, Vol+, Vol−, Power.
-
-| Control | Lists | Now Playing |
+| Control | Lists and menus | Now Playing |
 |---|---|---|
-| Wheel | Move selection (with speed-up) | Volume (overlay) |
-| Centre (`PLAY`) | Open | Play/pause |
-| Centre double press | — | Scrub mode: wheel seeks, centre confirms |
-| Back | Up one level | Back to where you came from |
-| Hold Back | Jump to Now Playing | Return to previous screen |
-| Menu | Context menu for the selection | Track options (queue, add to playlist, shuffle, repeat) |
-| Prev / Next | Page up / page down | Previous / next track; hold to seek |
-| Vol+ / Vol− | Volume (overlay) | Volume (overlay) |
-| Power | Lock screen / sleep | Lock screen / sleep |
+| Wheel | Move selection (speeds up as you spin) | Volume |
+| Centre (`PLAY`) | Open the selection | Play/pause |
+| Centre twice, or held | — | Scrub: the wheel seeks, the bar shows a cursor block |
+| Prev / Next | One item (held: repeat) | Previous / next track; held, seek |
+| Back | Up one level; held, jump to Now Playing | Back to the screen it opened from |
+| Menu | The menu; held, the context menu for the selection | The on-play menu (queue, playlist, shuffle, repeat, delete, properties) |
+| Vol+ / Vol− | Volume | Volume |
+| Power | Lock the keys and turn the display off, from any screen. Press again to wake (one press is enough after the backlight timeout); held, power off |
 
 ---
 
 ## 4. Screens
 
-Measurements are in pixels, as (x, y, width × height).
+Measurements are (x, y, width × height).
 
 ### 4.1 Status bar (every screen)
 
-```
-┌────────────────────────────────────────┐
-│ ▶          12:41               ᛒ ▮▮▮▯  │ 22 px
-└────────────────────────────────────────┘
-```
-
-- Left (12, 5): play/pause/stop glyph.
-- Centre: clock in `ui-small`; the screen title instead when the clock is off.
-- Right: Bluetooth (when connected), battery (icon, optional %).
-- Replaces both of today's status bars (`statusbar.c` and the themed one).
+A 22 px gradient band with a hairline at the bottom. Without a title it is:
+play-state glyphs on the left, the clock centred, Bluetooth and the battery on
+the right. Screens that name themselves (Home, Cover Flow, Now Playing…) put
+the title on the left and the clock moves to the centre only while there is
+room for both, otherwise it tucks in against the icons. The bar can be narrowed
+(Home draws it only over its menu). Battery: `37%`, `+` while charging, red
+under 20%, blinking when critically low; the clock is a setting.
 
 ### 4.2 Home
 
+The start screen: full-width rows, `UI_ROW_H`, same pitch as every other list.
+
 ```
 ┌────────────────────────────────────────┐
-│ ▶          12:41               ᛒ ▮▮▮▯  │
-├───────────────────┬────────────────────┤
-│ • Now Playing     │                    │
-│   Music           │   ┌────────────┐   │
-│   Coverflow       │   │  current   │   │
-│   Files           │   │  album     │   │
-│   Playlists       │   │  cover     │   │
-│   Shuffle Songs   │   └────────────┘   │
-│   Settings        │                    │
-│   Bluetooth       │                    │
-└───────────────────┴────────────────────┘
+│ H2                12:41      BT  37%  │
+├────────────────────────────────────────┤
+│ Now Playing                            │   only while a track is loaded
+│ Music                                › │   or resumable
+│ Cover Flow                           › │
+│ Files                                › │
+│ Playlists                            › │
+│ Bluetooth                            › │
+│ Settings                             › │
+│ System                               › │
+└────────────────────────────────────────┘
 ```
 
-- Left menu (0, 22, 160 × 218), 27 px rows, a small white dot for the
-  selection. Wraps at both ends.
-- Right panel (160, 22, 160 × 218): current album's cover, 148 px, centred;
-  a placeholder when nothing is playing.
-- **Full** layout option: menu full width, no art.
-- Items: Now Playing (only while something is loaded), Music, Coverflow,
-  Files, Playlists, Shuffle Songs, Settings, Bluetooth. Back on Home goes to
-  the first row.
-- Replaces `root_menu`'s main menu as the start screen.
+Back on Home returns to the first row. Boot: the H2 boot image holds for 3 s,
+then zooms to 2× while blending into the theme background (Settings › General ›
+Startup/Shutdown › Skip Startup Animation to skip it).
 
 ### 4.3 Music (library)
 
-Text list: Artists, Albums, Songs, Genres, Composers, Recently Added, Most
-Played, Update Library. Driven by today's database browser (`tagtree.c` +
-`tagnavi.config`), shown with the new list style:
+`tagtree.c` + `tagnavi.config` in the new list style: Artists, Albums, Songs,
+Genres, Composers, Recently Added, Most Played, Update Database. Albums use art
+rows (48 px cover, album, grey artist); an album's tracks are text rows with the
+duration on the right. Untagged files fall back to the file name without its
+extension. Empty tags show as nothing rather than `""`. Long lists get the
+fast-scroll letter.
+
+### 4.4 Cover Flow
+
+Albums from the database as covers in a row, drawn column by column with
+perspective texture mapping, a reflection under them, album and artist below.
 
 ```
 ┌────────────────────────────────────────┐
-│ ◀ Music            12:41         ▮▮▮▯  │
-├────────────────────────────────────────┤
-│ ┌────────────────────────────────────┐ │  ← selection card
-│ │ Artists                          › │ │
-│ └────────────────────────────────────┘ │
-│   Albums                           ›   │
-│   Songs                            ›   │
-│   Genres                           ›   │
-│   ...                                  │
+│ Cover Flow            12:41      BT 37%│
+│  ╱╲ ╱╲ ┌────────────┐ ╱╲ ╱╲           │   centre 128 px at (96, 20)
+│  ╱╲ ╱╲ │  centre    │ ╱╲ ╱╲           │   4 covers each side, the
+│  ╱╲ ╱╲ │  cover     │ ╱╲ ╱╲           │   nearest 41 px wide, 29 px
+│        └────────────┘                 │   apart, full brightness
+│        ░░░ reflection ░░░             │
+│        The Dark Side of the Moon      │
+│              Pink Floyd               │
 └────────────────────────────────────────┘
 ```
 
-- **Albums** list uses art rows (46 px cover, album, grey artist).
-- **Songs in an album**: a header row (cover 64 px, album, artist, year,
-  count), then text rows with track number and duration.
-- Long lists get the fast-scroll letter.
-
-### 4.4 Coverflow
-
-```
-┌────────────────────────────────────────┐
-│ ▶          12:41               ▮▮▮▯    │
-├────────────────────────────────────────┤
-│   ╱▏ ╱▏ ┌────────────┐ ▕╲ ▕╲           │
-│  ▕ ▏▕ ▏ │  centre    │ ▕ ▏▕ ▏          │
-│  ▕ ▏▕ ▏ │  cover     │ ▕ ▏▕ ▏          │
-│   ╲▏ ╲▏ └────────────┘ ▕╱ ▕╱           │
-│         ░░ reflection ░░               │
-│        The Dark Side of the Moon       │
-│              Pink Floyd                │
-└────────────────────────────────────────┘
-```
-
-- Centre cover 120 px at (100, 32); two angled covers each side; faint
-  reflection under all of them down to y 186.
-- Album name `ui-body` white at y 192; artist `ui-small` grey at y 212.
-- Wheel moves one album per tick, animated. Centre opens the album's tracks
-  in a slide-up list over the covers; Back returns to the covers.
-- Covers come from a **thumbnail cache** on the card (`/.rockbox/covers/`,
-  120 px and 46 px versions, keyed by artist + album). Built on first use
-  with a progress screen, updated incrementally. Real art is loaded only for
-  ±3 albums around the centre; the rest show a placeholder until loaded.
-- Album list comes from the database API (`tagcache_search`), the way
-  Rockbox's PictureFlow did. **No database format change is needed** for
-  this (see §8).
+- Centre cover **128 px**, the nearest side cover 41 px wide (its inner edge
+  touches the centre cover), then 29 px strips; 4 per side visible.
+- Wheel, Prev/Next: one album per step, animated; faster spinning flows the
+  covers before they settle.
+- Centre opens the album's songs in a panel growing out of the cover
+  (26 px margins, a two-line accent header, 16 px rows with durations);
+  picking a song starts the album from it. Back returns to the covers.
+- Covers are decoded once and saved on the card in `.rockbox/newui/thumbs` as
+  raw native pixels: 150 px for Cover Flow, 48 px (`UI_THUMB`) for list rows,
+  plus a 1-byte "no art" marker. RAM cache: 24 thumbnails and 16 covers.
+- Missing covers are built in the background while nothing moves, the visible
+  ones first, then outwards from the centre. While the covers are moving only a
+  couple are read per frame (one while music plays), and all this work pauses
+  when the screen is off or the music needs the CPU.
 
 ### 4.5 Now Playing
 
+Console style: the track as text, its cover in the bottom-left corner, one
+progress band at the bottom.
+
 ```
 ┌────────────────────────────────────────┐
-│ ▶          12:41               ᛒ ▮▮▮▯  │ 0–22
-│ 3 of 12                            ••• │ 24–38  ui-small grey
-│ ╭──────────────╮                       │
-│ │              │ Money                 │ title ui-title white
-│ │    album     │ Pink Floyd            │ artist ui-body #CCCCCC
-│ │     art      │ The Dark Side of …    │ album ui-body #BBBBBB
-│ │   140×140    │                       │
-│ │              │          ⇄  ♡         │ shuffle / favourite
-│ ╰──────────────╯                       │
-│              ● ○ ○                     │ page dots y 192
-│ ━━━━━━━━━━━━━━━━━━━━━──────────────────│ 4 px line y 204
-│ 0:15                             -6:05 │ ui-small grey y 212
+│ Now Playing           12:41      BT 37%│
+│ Come Together                          │  title
+│ The Beatles                            │  artist   (grey)
+│ Abbey Road                             │  album    (grey)
+│ 3 of 12 · shuffle                      │  position and mode (grey)
+│ FLAC · 921 kbps · 44.1 kHz             │  the file (muted)
+│                                        │
+│ ┌──────┐                               │  cover, as big as the room
+│ │ cover│  up to 120 px, left-aligned   │  to the text allows; nothing
+│ └──────┘  with the text; no            │  if the album has no art
+│ ───────────────────────────────────────│  rule
+│ 0:15 ███████-------------       -6:05  │  8 px band, times either side
 └────────────────────────────────────────┘
 ```
 
-- Art (12, 42, 140 × 140), 10 px rounded corners. Text column from x 164.
-- Pages (wheel turns volume, so pages change with **Menu → View** or Prev/
-  Next long-press; to be decided): 1 art + text, 2 track info (format,
-  bitrate, sample rate, path), 3 big art. Visualiser is optional (phase 9).
-- Volume overlay when the wheel or volume keys turn: centred rounded panel,
-  speaker icon, bar, value; hides after 1.5 s.
-- Scrub mode (centre double-press): bar turns white, wheel seeks with a ramp
-  (5 s per tick, faster when spinning), centre or 3 s idle confirms.
-- Replaces `apps/gui/wps.c` and the theme engine's Now Playing.
+- Changing the volume replaces the band with a volume readout for 1.5 s.
+- Scrubbing (Centre twice, or held): the band becomes the scrub bar with a 4 px
+  cursor block; the wheel seeks, Centre or 3 s of idle ends it.
+- Pages of Now Playing (track info, big art) are not separate screens; the
+  extra data is on the readout lines and the on-play menu.
 
-### 4.6 Context menu (Menu button)
+### 4.6 Pop-ups, yes/no, progress
 
-Slide-up sheet over the current screen, text rows, items depend on the
-selection: Play Next, Add to Queue, Add to Playlist, Show Artist, Show
-Album, Delete (files), Properties. Uses today's `onplay.c` actions.
+A dimmed screen and a rounded panel (radius 12, 16 px padding). Yes/no and
+short choice lists (up to six options) are drawn as rows inside the panel;
+longer lists fall back to a full-screen list. Text is word-wrapped to the panel
+width.
 
 ### 4.7 Settings
 
-Today's settings menus (`settings_list.c`, `apps/menus/`) in the new list
-style. Values show in grey on the right of each row. Choice screens and
-sliders (`option_select.c`) restyled: sliders as a full-width bar with the
-value above it. No settings logic changes.
+`settings_list.c` and `apps/menus/` unchanged in behaviour, drawn by the new
+list widget: values in grey on the right of the row. New in Settings › General
+› Display: **theme** (Dark/Light), **selection style** (Classic accent band /
+Minimal light band), **accent colour** (six), **status bar clock**. Theme
+Settings and the Bluetooth submenu are gone — Bluetooth is a Home item.
 
-Removed from Settings: Theme Settings (themes go in phase 8), plugin-based
-entries (see `CLAUDE.md`). New: Display → Home layout, Theme
-(Minimal/Classic), Accent colour, Clock on/off, Battery %.
+### 4.8 System screens
 
-### 4.8 Pop-ups and system screens
+- **System › System Status**: a live text readout, redrawn once a second — CPU
+  load with a bar, memory, storage, I/O, the database, uptime.
+- **System › View Battery Usage**: the battery level against hours since the
+  last charge, as a full-screen chart with a header. The log (a point every 5%,
+  sampled every 30 s) is kept in `.rockbox/newui/battery.txt`.
+- **System › Debug**: Rockbox's debug menu, plus the UI gallery, CPU idle
+  statistics and the temporary 1008 / 252 MHz switch for measuring power.
 
-| Screen | Plan |
+### 4.9 Other screens
+
+| Screen | As built |
 |---|---|
-| Yes/No (`yesno.c`) | Centred rounded panel, title, two choices as a 2-row list |
-| Splash (`splash.c`) | Centred rounded panel, text only, fades out |
-| Progress (database scan, cover cache) | Panel with title, bar, count |
-| Text entry (`keyboard.c`) | Wheel-driven character strip (iPod style) instead of today's grid |
-| Quick screen (`quickscreen.c`) | Removed; its settings move to Now Playing's Menu |
-| USB connected (`usb_screen.c`) | Black screen, USB glyph, "Connected", battery |
-| Boot / shutdown | Logo + version / "Goodbye" |
-| Lock screen | Clock, current track, cover; centre double-press unlocks |
-| Bluetooth devices | List with status on the right (Connected / Paired / Searching) |
+| Lock screen | Power locks the keys and blanks the display from any screen; the lock screen shows the clock, the date and the playing track as text, centred. Power or double-press Centre unlocks |
+| Text entry | Wheel-driven character strip, text in a field at the top |
+| USB connected | Full-width status bar, USB glyph, "Connected", battery |
+| Boot / shutdown | H2 boot image with the zoom animation / "Goodbye" |
+| Splash, yes/no, database progress | The rounded panel of §4.6 |
 
 ---
 
@@ -289,114 +293,98 @@ entries (see `CLAUDE.md`). New: Display → Home layout, Theme
 
 ```
 apps/newui/
-  ui_draw.c     drawing primitives: rounded rects, AA edges, text with
-                ellipsis and fade, alpha blending, image blit and scale
-  ui_font.c     font loading for the four sizes
-  ui_anim.c     animation timing, frame pacing, easing
-  ui_wheel.c    wheel speed-up and fast-scroll letter
-  ui_list.c     pixel-smooth list widget (text and art rows), used for
-                everything list-shaped
-  ui_status.c   status bar
-  ui_art.c      album art loading, thumbnail cache, in-RAM cache
+  ui.h          design tokens: sizes, colours, the API
+  ui_style.c    the two themes, the two selection styles, the accents
+  ui_font.c     loading the UI font
+  ui_draw.c     primitives: rects, gradients, rounded corners, alpha, text
+                with ellipsis, the drill chevron
+  ui_status.c   the status bar
+  ui_wheel.c    wheel speed-up, the fast-scroll letter
+  ui_transition.c  slide between list levels
+  ui_art.c      the playing track's cover, decoded and cached
+  ui_thumb.c    album covers at 48 and 150 px, on the card and in RAM
+  ui_popup.c    panels, yes/no, choice lists, wrapped text
+  ui_keyboard.c text entry
+  ui_gallery.c  the debug-menu UI gallery
+  ui_time.c     µs counter for frame timing
   scr_home.c    Home
-  scr_np.c      Now Playing (+ volume overlay, scrub)
-  scr_cf.c      Coverflow
-  scr_lib.c     library list views over tagtree
-  scr_popup.c   yes/no, splash, progress, context sheet
-  scr_gallery.c UI gallery (debug menu)
+  scr_np.c      Now Playing's drawing (its logic stays in gui/wps.c)
+  scr_coverflow.c  Cover Flow and its album sheet
+  scr_stats.c   System Status
+  scr_battery.c battery log and chart
+  scr_lock.c    the lock screen
+apps/gui/list.c + apps/gui/bitmap/list.c  every list, restyled
+apps/root_menu.c   Home and screen switching
 ```
 
-Existing code it connects to: `root_menu.c` (screen switching),
-`gui/list.c` (redirected to `ui_list`), `tagtree.c`, `playback.c` events,
-`recorder/albumart.c` + `jpeg_load.c` + `resize.c`, `settings_list.c`.
+Connects to: `tagtree.c`/`tagcache.c` (library), `playback.c` events,
+`recorder/albumart.c`, `jpeg_load.c`, `resize.c`, `settings_list.c`,
+`viewport.c`, `statusbar.c`, `onplay.c`.
 
 ---
 
 ## 6. Phases
 
-Every phase is a series of small commits. Each commit must build firmware,
-simulator and (until phase 8) checkwps, with no new warnings. Screens are
-checked in the simulator by screenshot before anything goes on the device.
-**Device checkpoint** = the user installs the build and tests a short list.
-
-| Phase | Goal | Main steps (≈ one commit each) | Done when |
-|---|---|---|---|
-| **0. Tooling** | Make work checkable | Simulator script runner + screenshot capture; font build (TTF → `.fnt` via convttf) for 4 sizes; frame timer (logf); UI gallery shell in debug menu | I can script keys and read screenshots; fonts load on the device |
-| **1. Foundations** | Drawing and the new status bar | `ui_draw`, `ui_font`, `ui_anim`; `ui_status` replacing both status bars; gallery pages for each primitive | Status bar looks right everywhere; gallery renders on device at full speed. **Device checkpoint** |
-| **2. Lists** | New look for every menu | `ui_list` with text rows and selection card; route `gui/list.c` drawing to it; wheel speed-up; value column; chevrons; art rows | All settings and browser menus show the new style; no menu behaves differently. **Device checkpoint** |
-| **3. Home** | New start screen | `scr_home` split + full layouts; hook into `root_menu`; Back/hold-Back rules; Home settings | Device boots to Home |
-| **4. Now Playing** | Replace the theme Now Playing | `scr_np` layout; art loading; progress/time; volume overlay; info page; scrub; switch setting (old/new); then default to new | Plays, seeks, volume, shows art on device. **Device checkpoint** |
-| **5. Library** | Database browsing | Music menu; albums with art rows; album track page with header; songs list; fast-scroll letter | Browse artist → album → track and play |
-| **6. Coverflow** | Coverflow | Thumbnail cache builder + progress screen; album list from database; 3D-ish rendering + reflection; animation; album track sheet | Smooth at 30 fps on device with a real library. **Device checkpoint** |
-| **7. Pop-ups** | System screens | Yes/no, splash, progress, context sheet, keyboard, USB, boot/shutdown, lock screen, Bluetooth device list | No old-style screen left in normal use |
-| **8. Removal** | Delete what the new UI replaced | Theme engine, `skin_parser`, checkwps, `wps/`, backdrops, theme settings; old status bar; quick screen; plugin menu leftovers; voice call sites; unused fonts and icons | Builds clean; measure code lines (expected large drop) |
-| **9. Polish** | Extras | Page transitions; Classic theme + accent colours; visualiser (optional); translations of new strings | — |
-
-Phases 3–7 can be reordered once phase 2 is in. Each phase starts with a short
-design check (screenshots of the gallery) before wiring it into real screens.
+| Phase | Goal | Status |
+|---|---|---|
+| 0. Tooling | Scripted simulator screenshots, font build, gallery, frame timer | Done |
+| 1. Foundations | Drawing primitives, the status bar | Done |
+| 2. Lists | New style for every list, menu and browser | Done |
+| 3. Home | Home as the start screen, transitions | Done |
+| 4. Now Playing | Console-style Now Playing, volume band, scrub | Done |
+| 5. Library | Database browsing with art rows | Done |
+| 6. Cover Flow | Covers, cache, animation, album sheet | Done |
+| 7. Pop-ups | Yes/no, splash, keyboard, USB, lock, boot | Done; the visualiser is not |
+| 8. Removal | Theme engine, skin parser, WPS, backdrops, voice, quick screen | Done |
+| 9. Polish | Transitions (done), accents (done), translations of the new `LANG_NEWUI_*` strings (open), power work (ongoing, see POWER.md) | Open |
 
 ---
 
-## 7. How I'll test
+## 7. Testing
 
-- **Simulator first.** Every screen is built and checked in `build-sim`. The
-  script runner sends key presses and saves screenshots, which I can view to
-  check alignment, sizes and colours. It needs either `xvfb` + `xdotool`
-  (`sudo apt install xvfb xdotool`, simplest), or a small key-script mode built
-  into the simulator (no extra packages; I can add this in phase 0).
-- **Golden screenshots.** Each finished screen gets reference screenshots in
-  `newui-tools/shots/`; later changes are compared against them to catch
-  layout regressions.
-- **Device checkpoints** at the end of phases 1, 2, 4 and 6, with a checklist.
-  The device's own screen-dump feature can send me exact device screenshots.
-- **Speed.** The frame timer logs drawing time on the device. Targets: lists
-  and Coverflow at 30 fps or better, Now Playing updates under 10 ms.
+- **Simulator first.** Every screen is built and checked in `build-sim` with a
+  key script (`RB_SCRIPT`) writing PNGs to `RB_SHOTDIR`, run headless. The
+  screenshots in `docs/screens/` are made that way.
+- **The gallery** draws each widget with fake data, on the device as well as in
+  the simulator, so fonts, colours and row heights can be checked on real
+  hardware.
+- **Speed** is measured on the device with `ui_time.c` and the CPU-idle
+  readout; the builds must compile for firmware, simulator and warble with no
+  new warnings.
 
 ---
 
-## 8. Hurdles and risks
+## 8. Risks, and where they ended up
 
-| # | Risk | Impact | Plan |
-|---|---|---|---|
-| 1 | **Drawing speed on the X1000.** Smooth scrolling, Coverflow and slides redraw most of the 320×240 screen each frame; Rockbox's drawing is not built for that. | Could make animation choppy | Measure in phase 1 with the frame timer before building on it. Redraw only changed areas; precompute Coverflow's slanted covers; drop animations that can't hit 30 fps |
-| 2 | **Fonts.** Good-looking anti-aliased text needs a converted TrueType font; `convttf` needs the FreeType library (`sudo apt install libfreetype-dev`). Apple's own fonts can't be used. | Look and feel | Use Inter or Source Sans 3 (free licence); check the converted sizes on the device in phase 0 |
-| 3 | **Theme engine is wired into 37 files.** Lists, menus, the USB screen, yes/no and Now Playing all go through it. | Phase 8 is a big, risky removal | Keep it working until every screen is replaced; remove it last, in small steps |
-| 4 | **Album art.** Covers come from `cover.jpg` files or embedded tags (MP3, M4A, FLAC); large JPEGs take time to decode; libraries without art look empty. | Coverflow speed, first-run wait | Thumbnail cache built once with a progress screen; placeholder art; only ±3 covers in full size |
-| 5 | **Database dependency.** Library and Coverflow need Rockbox's database built (slow on the first scan). | First-run experience | "Update Library" on Home's Music menu with a progress screen; Coverflow offers to build it if missing. No format change planned; only if the album query turns out too slow |
-| 6 | **Memory (32 MB).** Cover caches, fonts and screen buffers compete with the audio buffer. | Stability | Fixed budget: ~1 MB for covers (≈20 × 120 px + 60 × 46 px), fonts ~200 KB; measured in the debug menu |
-| 7 | **Visual checking.** I can check the simulator myself only once screenshots can be scripted (risk-free once tooling is in); device-only problems (colours, speed, font sharpness) need you. | Slower iteration on device issues | Device checkpoints with short checklists; device screen dumps |
-| 8 | **Upstream updates.** The UI rewrite moves us further from upstream Rockbox. | Hard to take upstream fixes later | Accept it as a fork; keep new code in `apps/newui/` so conflicts stay in a few files |
-| 9 | **Behaviour hidden in old screens.** Old screens handle many events (USB, low battery, database busy, playlist errors). | Missed edge cases | Reuse the existing event handling (`default_event_handler`), and keep the old screens reachable until phase 8 |
-| 10 | **Translations.** New screens add English strings; other languages fall back to English until translated. | Minor | Translate later (phase 9) |
-
-None of these is a blocker. #1 (drawing speed) decides how much animation is
-possible and is measured first.
-
-**Measured on the H2 (2026-10-15, UI gallery):** clearing the full screen in
-memory takes 0.64 ms; a full-screen `lcd_update()` brings a frame to 15.4 ms
-(65 fps); a page of eight anti-aliased text rows adds about 0.2 ms. Sending the
-frame to the display is the limit, not drawing, so 60 fps animation is possible
-when a frame's drawing stays near 1 ms, and 30 fps leaves ~18 ms of drawing per
-frame. Risk #1 is resolved; small changes should use `lcd_update_rect()`.
+| # | Risk | Outcome |
+|---|---|---|
+| 1 | Drawing speed on the X1000 | Resolved. Measured in the gallery: clearing the screen 0.64 ms, a full `lcd_update()` 15.4 ms (65 fps). Frame delivery, not drawing, is the limit; Cover Flow is capped at 30 fps while music plays, and small changes use `lcd_update_rect()` |
+| 2 | Anti-aliased fonts need FreeType and a large file | Sidestepped: Tiny5 Mono is a 9 px bitmap font, 452 KB, no conversion needed at build time. The Noto CJK faces are the exception (27 MB on the card), and only for a future CJK build |
+| 3 | The theme engine touched 37 files | Removed (phase 8) without breaking the menus; the list widget is the only restyling point left |
+| 4 | Album art: JPEG decode is slow, libraries without art look empty | Solved by the thumbnail cache (`ui_thumb.c`) and a placeholder only where a cover is genuinely missing |
+| 5 | Database dependency for Cover Flow | Album lists are built in one pass over the database when Cover Flow opens, and reused while the database is unchanged. No database format change was needed |
+| 6 | Memory (32 MB) | Cover caches are static: 24 × 48² and 16 × 150² pixels (~830 KB), Cover Flow's album/track pools ~290 KB. Fonts are cached per glyph, not wholesale |
+| 7 | Upstream drift | Accepted: this is a fork. New UI code stays in `apps/newui/` so conflicts stay local |
+| 8 | Translations | The new strings are English-only (`LANG_NEWUI_*`); other languages fall back |
 
 ---
 
 ## 9. Decisions
 
-Made (2026-10-15):
-
-1. **Font**: Noto Sans CJK JP, for Chinese, Japanese and Korean text (was
-   Nimbus Sans, URW's Helvetica clone, until 2026-10-25, and Source Sans 3
-   until 2026-10-16).
-2. **Home items and menu layout**: as drafted in §4, refined during the work.
-3. **Back** always goes to the parent screen, including from Now Playing.
-   Now Playing's extra pages (track info, big art) open from its Menu sheet
-   instead of being switched in place.
-4. **Default theme**: Classic (accent-coloured selection bar). Minimal stays
-   available as an option.
-5. **Branch**: `newui-bt`.
-
-Open:
-
-6. Simulator test tool: `xvfb` + `xdotool`, or a key-script mode built into
-   the simulator. `libfreetype-dev` is needed in either case (font conversion).
+1. **No iPod-style design.** The classic iPod's silver bars, rounded selection
+   cards and page dots are not the target any more; the interface is a compact,
+   text-first design sized by one 9 px monospace font. Cover Flow stayed because
+   it works, not because the iPod had it.
+2. **Font**: Tiny5 Mono for every UI slot (was Noto Sans CJK JP, before that
+   Nimbus Sans, before that Source Sans 3). Glyphs load from the card, so file
+   size costs disk, not RAM.
+3. **CJK**: deferred, not abandoned — the Noto Sans CJK faces and `mkfonts.sh`
+   remain in the tree for a later build.
+4. **Back** always goes to the parent screen, including from Now Playing.
+5. **Default look**: Dark theme, Classic selection (the accent band), Graphite
+   accent; Minimal and Light are options.
+6. **Power** locks the keys and turns the display off rather than sleeping the
+   player, from any screen; one press wakes it.
+7. **Bluetooth is a Home item**, not a settings submenu.
+8. **Repo**: this tree (`tiny5-rockbox`) is built on top of
+   `dismal-ad/h2-rockbox`, which is the base H2 port.
