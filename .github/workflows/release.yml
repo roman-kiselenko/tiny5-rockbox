@@ -115,9 +115,7 @@ jobs:
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "Release $TAG already exists; only the archive is uploaded."
           else
-            notes="Automatic build of \`${TAG}\` by the Release workflow.
-
-Unzip to the root of the SD card (it contains \`.rockbox/\`). Bluetooth needs hardware revision 4 (hw4)."
+            notes="Automatic build of \`${TAG}\` by the Release workflow. Unzip to the root of the SD card (it contains \`.rockbox/\`). Bluetooth needs hardware revision 4 (hw4)."
             if [ -f docs/RELEASE_NOTES.md ]; then
               notes="$(cat docs/RELEASE_NOTES.md)"
             fi
