@@ -184,7 +184,8 @@ Tested on Ubuntu. Full steps, including the simulator, are in
 
 ```bash
 # tools needed to build
-sudo apt install build-essential git perl zip unzip wget flex bison texinfo
+sudo apt install build-essential git perl zip unzip wget flex bison texinfo \
+                 autoconf automake libtool libtool-bin
 
 # get the code
 git clone https://github.com/roman-kiselenko/tiny5-rockbox.git

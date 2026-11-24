@@ -52,7 +52,8 @@ be deleted from `.rockbox/fonts/`.
 ## Build it yourself
 
 ```bash
-sudo apt install build-essential git perl zip unzip wget flex bison texinfo
+sudo apt install build-essential git perl zip unzip wget flex bison texinfo \
+                 autoconf automake libtool libtool-bin
 git clone https://github.com/roman-kiselenko/tiny5-rockbox.git
 cd tiny5-rockbox
 RBDEV_PREFIX=$HOME/rockbox-toolchain RBDEV_TARGET=i tools/rockboxdev.sh   # once

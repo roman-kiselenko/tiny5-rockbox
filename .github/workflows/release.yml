@@ -50,7 +50,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             build-essential git perl zip unzip curl wget \
-            flex bison texinfo autoconf automake libtool bzip2 xz-utils
+            flex bison texinfo autoconf automake libtool libtool-bin bzip2 xz-utils
+
+      # tools/rockboxdev.sh aborts if any of these is missing; check them
+      # first so the failure is obvious instead of "libtool is required".
+      - name: Check the tools rockboxdev.sh requires
+        run: |
+          missing=""
+          for t in gcc g++ xz bzip2 gzip make patch makeinfo automake libtool autoconf flex bison; do
+            command -v "$t" >/dev/null || missing="$missing $t"
+          done
+          if [ -n "$missing" ]; then
+            echo "Missing required tools:$missing"
+            exit 1
+          fi
+          echo "Toolchain prerequisites OK"
 
       # tools/rockboxdev.sh builds binutils 2.38 and gcc 9.5.0 for mipsel-elf,
       # which takes a long time. Cache it with the downloaded tarballs; change
