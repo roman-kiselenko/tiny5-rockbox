@@ -21,7 +21,7 @@
 /* Album covers at fixed small sizes, keyed by a track of the album:
  * UI_THUMB for list rows and UI_COVER for Cover Flow. Decoded once: kept
  * in RAM (the most recently used few) and on the card in THUMB_DIR, as raw
- * native pixels, or a 1-byte file when the track has no art. */
+ * native pixels, or as a one byte "no art" marker holding NOART_VERSION. */
 
 #include "config.h"
 #include <stdio.h>
@@ -37,6 +37,11 @@
 #define THUMB_DIR   ROCKBOX_DIR "/newui/thumbs"
 #define THUMB_RAM   24
 #define COVER_RAM   16
+
+/* The 1-byte "no art" file holds this. Bump it when the decoders learn to
+ * read more covers, so the ones they could not read are tried again (0:
+ * before progressive JPEGs were decoded, 1: progressive JPEGs). */
+#define NOART_VERSION 1
 
 struct cache {
     int size, slots;
@@ -94,8 +99,9 @@ static bool load(const struct cache *c, uint32_t key, bool *has_art, fb_data *px
     bool ok = false;
     if (size == 1)
     {
+        unsigned char v;
         *has_art = false;
-        ok = true;
+        ok = read(fd, &v, 1) == 1 && v == NOART_VERSION; /* else try again */
     }
     else if (size == (off_t)bytes(c))
     {
@@ -104,6 +110,12 @@ static bool load(const struct cache *c, uint32_t key, bool *has_art, fb_data *px
     }
     close(fd);
     return ok;
+}
+
+static void write_noart(int fd)
+{
+    const unsigned char v = NOART_VERSION;
+    write(fd, &v, 1);
 }
 
 static void store(const struct cache *c, uint32_t key, bool has_art,
@@ -122,7 +134,7 @@ static void store(const struct cache *c, uint32_t key, bool has_art,
     if (has_art)
         write(fd, px, bytes(c));
     else
-        write(fd, "", 1);
+        write_noart(fd);
     close(fd);
 }
 
@@ -161,11 +173,19 @@ static void shrink_cover(const fb_data *src, fb_data *dst)
     }
 }
 
+/* saved, and not a "no art" file from before NOART_VERSION */
 static bool on_card(const struct cache *c, uint32_t key)
 {
     char name[MAX_PATH];
     file_of(c, key, name, sizeof(name));
-    return file_exists(name);
+    int fd = open(name, O_RDONLY);
+    if (fd < 0)
+        return false;
+    unsigned char v;
+    bool ok = ffilesize(fd) != 1 ||
+              (read(fd, &v, 1) == 1 && v == NOART_VERSION);
+    close(fd);
+    return ok;
 }
 
 /* decodes a cover into px and keeps it on the card; a cover also gives

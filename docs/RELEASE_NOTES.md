@@ -45,9 +45,11 @@ contains `.rockbox/`).
    `bt_config.conf` and `bt_devices.txt` are not in the archive.
 3. Eject the card and reboot.
 
-Most of the 15 MB is fonts. The interface only needs Tiny5 Mono (452 KB); the
-Noto Sans CJK faces (~27 MB on the card) are kept for a future CJK build and can
-be deleted from `.rockbox/fonts/`.
+The archive is about 2.6 MB: the firmware, the codecs and Tiny5 Mono (452 KB),
+the only font the interface uses. The Noto Sans CJK faces (~27 MB on the card)
+from the earlier UI are no longer installed; `fonts/newui/mkfonts.sh` can still
+make them for a future CJK build. Updating from an older build leaves them
+behind — delete `.rockbox/fonts/newui-*.fnt` to reclaim the space.
 
 ## Build it yourself
 

@@ -31,7 +31,10 @@
 #include "bmp.h"
 
 #define HUFF_LOOKAHEAD 8 /* # of bits of lookahead */
-#define JPEG_READ_BUF_SIZE 16
+/* A progressive JPEG is read scan by scan, sometimes several times over; a
+ * 16 byte read buffer makes every refill a seek on the card, so read in
+ * bigger chunks. */
+#define JPEG_READ_BUF_SIZE 4096
 struct derived_tbl
 {
     /* Basic tables: (element [0] of each array is unused) */

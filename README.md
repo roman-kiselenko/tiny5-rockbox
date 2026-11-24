@@ -31,10 +31,8 @@ Releases are built by GitHub Actions: pushing a tag `vX.Y.Z` runs
 `.github/workflows/release.yml`, which compiles the firmware for `erosqnative`
 and uploads it as `rockbox-h2-vX.Y.Z.zip` to that tag's release.
 
-The archive is about 15 MB, mostly fonts: the Noto Sans CJK faces (about 27 MB
-on the card) plus Tiny5 Mono. The UI uses Tiny5 Mono only, so the
-`newui-*.fnt` files are dead weight — deleting them saves 27 MB and changes
-nothing (see [fonts](#fonts-and-languages)).
+The archive is about 2.6 MB: the firmware, the codecs and Tiny5 Mono (452 KB),
+the only font the UI needs (see [fonts](#fonts-and-languages)).
 
 The player must already have the **official Rockbox bootloader** for the Eros
 Q native (install it with Rockbox Utility, or use a stock Rockbox build once).
@@ -109,11 +107,11 @@ draws everything in Noto Sans CJK, which was the UI font before the switch to
 Tiny5.)
 
 **CJK is not supported yet.** The Noto Sans CJK JP faces (14/18/20/22/40 px,
-SIL OFL 1.1) from an earlier iteration of the UI are still in
-`fonts/newui`, still installed on the card, and are the starting point for a
-Chinese/Japanese/Korean build. `fonts/newui/mkfonts.sh` regenerates them from
-Noto Sans CJK with `tools/convttf` (needs libfreetype-dev); the generated
-`.fnt` files are committed, so a normal build does not need FreeType.
+SIL OFL 1.1) from an earlier iteration of the UI are no longer in the tree —
+they were 27 MB on the card and nothing used them. `fonts/newui/mkfonts.sh`
+still generates them from Noto Sans CJK with `tools/convttf` (needs
+libfreetype-dev) as the starting point for a Chinese/Japanese/Korean build.
+A normal build needs no FreeType: Tiny5 Mono's `.fnt` is committed.
 
 ### Controls
 
@@ -243,6 +241,7 @@ pass with no new warnings.
   (Thiago Lugli), built on Skye's Bluedroid port.
 - Code under the GNU General Public License v2, like Rockbox. See
   [docs/COPYING](docs/COPYING). Tiny5 Mono
-  ([Gissio/font_Tiny5Mono](https://github.com/Gissio/font_Tiny5Mono)) and Noto
-  Sans CJK are under the SIL Open Font License 1.1 (`fonts/COPYING` and
-  `fonts/newui/LICENSE-NotoSansCJK.txt`).
+  ([Gissio/font_Tiny5Mono](https://github.com/Gissio/font_Tiny5Mono)) is under
+  the SIL Open Font License 1.1 (`fonts/COPYING`), as are the Noto Sans CJK
+  faces the deferred CJK build would use
+  (`fonts/newui/LICENSE-NotoSansCJK.txt`).

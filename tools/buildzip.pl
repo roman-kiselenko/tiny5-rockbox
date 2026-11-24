@@ -329,10 +329,15 @@ sub buildzip {
         }
     }
 
-    # the new UI's fonts (Noto Sans CJK, SIL Open Font License) are always installed
+    # the new UI's fonts are always installed: Tiny5 Mono (committed as
+    # .fnt), plus the Noto Sans CJK faces if mkfonts.sh has generated them
+    # for a CJK build
     glob_mkdir("$temp_dir/fonts");
     glob_copy("$ROOT/fonts/newui/*.fnt", "$temp_dir/fonts/");
-    copy("$ROOT/fonts/newui/LICENSE-NotoSansCJK.txt", "$temp_dir/fonts/LICENSE-NotoSansCJK.txt");
+    if (glob("$ROOT/fonts/newui/newui-*.fnt")) {
+        copy("$ROOT/fonts/newui/LICENSE-NotoSansCJK.txt",
+             "$temp_dir/fonts/LICENSE-NotoSansCJK.txt");
+    }
 
     # create the file so the database indexer skips this folder
     open(IGNORE, ">$temp_dir/database.ignore")  || die "can't open database.ignore";
