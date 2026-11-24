@@ -18,22 +18,24 @@
  *
  ****************************************************************************/
 
-/* Now Playing's drawing (PLAN.md §4.5), console style: the track as text,
- * its cover in the bottom-left corner if the album has one, and one
- * progress line at the bottom. The screen's logic stays in apps/gui/wps.c,
- * which calls ui_np_draw():
+/* Now Playing's drawing (PLAN.md §4.5), centred: the cover in the middle,
+ * the track as text below it, and one progress line at the bottom. The
+ * screen's logic stays in apps/gui/wps.c, which calls ui_np_draw():
  *
- *   Come Together
- *   The Beatles
- *   Abbey Road
- *   3 of 12 · shuffle
- *   FLAC · 921 kbps · 44.1 kHz
- *
- *     ┌──────┐
- *     │ cover│
- *     └──────┘
+ *             ┌──────┐
+ *             │ cover│
+ *             └──────┘
+ *            Come Together
+ *            The Beatles
+ *            Abbey Road
+ *            3 of 12 · shuffle
+ *            FLAC · 921 kbps · 44.1 kHz
  *   ──────────────────────────────────
  *   0:15 ███████-------------   -6:05
+ *
+ * The cover and every readout line are centred; an album with no art gets
+ * no cover and the text floats in the middle of the space instead. The
+ * times stay at the ends of the band - it is the screen's ruler.
  *
  * When the volume changes, the band shows it for a moment instead of the
  * progress. */
@@ -63,7 +65,9 @@
 #define OVERLAY_TICKS  (HZ * 3 / 2)
 #define NP_ART_MAX    120  /* the largest cover we make room for */
 #define NP_ART_MIN     64  /* smaller than this, leave the room empty */
-#define NP_ART_GAP      6  /* air between the readout and the cover */
+#define NP_ART_GAP      8  /* air between the cover and the first line */
+#define NP_TOP_PAD      6  /* air above the cover */
+#define NP_BAND_PAD     4  /* air below the last line, above the rule */
 
 static long volume_until;   /* tick until which the volume overlay shows */
 static bool volume_shown;
@@ -154,30 +158,61 @@ static void draw_band(struct viewport *vp, const struct mp3entry *id3,
         draw_bar(bx, by, bw, pos, len);
 }
 
-/* the track, one line each: title, artist, album, position, the file.
- * Returns the y just below the last line. */
-static int draw_info(struct viewport *vp, const struct mp3entry *id3,
-                     char *buf, size_t len)
+static const char *np_artist(const struct mp3entry *id3)
+{
+    if (id3->artist && *id3->artist)
+        return id3->artist;
+    if (id3->albumartist && *id3->albumartist)
+        return id3->albumartist;
+    return NULL;
+}
+
+/* How many readout lines this track has, so the cover can be sized before
+ * anything is drawn. buf is scratch for the file line. */
+static int info_lines(const struct mp3entry *id3, char *buf, int size)
+{
+    int n = 1;                                /* title */
+    if (np_artist(id3))
+        n++;                                  /* artist */
+    if (id3->album && *id3->album)
+        n++;                                  /* album */
+    n++;                                      /* "3 of 12 · shuffle" */
+    if (ui_file_line(id3, buf, size))
+        n++;                                  /* codec, bitrate, rate */
+    return n;
+}
+
+/* The cover size that fits above the readout; 0 when it would be too small
+ * to be worth decoding. */
+static int cover_size(int lines)
+{
+    int room = NPL_BAND_Y - NP_TOP_PAD - NP_ART_GAP - NP_BAND_PAD
+               - lines * NP_LINE_H;
+    return MIN(NP_ART_MAX, room);
+}
+
+/* the track, one centred line each: title, artist, album, position, the
+ * file, the block starting at y */
+static void draw_info(struct viewport *vp, const struct mp3entry *id3,
+                      char *buf, size_t len, int y)
 {
     const int row = ui_font(UI_FONT_ROW);
     const int w = vp->width - 2 * UI_MARGIN;
     char line[64];
-    int y = 6;
 
-    ui_text(UI_MARGIN, y, row, UI_COL_TEXT, ui_track_title(id3, buf, len), w, -1);
+    ui_text(UI_MARGIN, y, row, UI_COL_TEXT, ui_track_title(id3, buf, len),
+            w, 0);
     y += NP_LINE_H;
 
-    const char *artist = id3->artist && *id3->artist ? id3->artist :
-                         id3->albumartist && *id3->albumartist ?
-                             id3->albumartist : NULL;
+    const char *artist = np_artist(id3);
     if (artist)
     {
-        ui_text(UI_MARGIN, y, row, UI_COL_TEXT2, artist, w, -1);
+        ui_text(UI_MARGIN, y, row, UI_COL_TEXT2, artist, w, 0);
         y += NP_LINE_H;
     }
     if (id3->album && *id3->album)
     {
-        ui_text(UI_MARGIN, y, row, UI_COL_TEXT2, id3->album, w, -1);
+        ui_text(UI_MARGIN, y, row, UI_COL_TEXT2, id3->album, w, 0);
         y += NP_LINE_H;
     }
 
@@ -187,31 +222,11 @@ static int draw_info(struct viewport *vp, const struct mp3entry *id3,
     snprintf(line, sizeof line, "%d of %d%s%s",
              playlist_get_display_index(), playlist_amount(),
              mode ? " \xc2\xb7 " : "", mode ? mode : "");
-    ui_text(UI_MARGIN, y, row, UI_COL_TEXT2, line, w, -1);
+    ui_text(UI_MARGIN, y, row, UI_COL_TEXT2, line, w, 0);
     y += NP_LINE_H;
 
-    ui_file_line(id3, line, sizeof line);
-    if (line[0])
-    {
-        ui_text(UI_MARGIN, y, row, UI_COL_MUTED, line, w, -1);
-        y += NP_LINE_H;
-    }
-    return y;
-}
-
-/* The cover: its left edge lined up with the text, resting on the
- * progress band, as big as the room left by the readout allows. Albums
- * with no art leave the corner empty - no placeholder. */
-static void draw_cover(int text_end)
-{
-    const int bottom = NPL_BAND_Y;
-    int size = MIN(NP_ART_MAX, bottom - text_end - NP_ART_GAP);
-    if (size < NP_ART_MIN)
-        return;
-
-    const struct bitmap *art = ui_art_current(size);
-    if (art)
-        ui_art_draw(art, UI_MARGIN, bottom - size, size, 0);
+    if (ui_file_line(id3, line, sizeof line))
+        ui_text(UI_MARGIN, y, row, UI_COL_MUTED, line, w, 0);
 }
 
 
@@ -252,8 +267,19 @@ void ui_np_draw(bool full)
     if (id3)
     {
         char buf[MAX_PATH];
-        int text_end = draw_info(&vp, id3, buf, sizeof(buf));
-        draw_cover(text_end);
+        char scratch[64];
+        int lines = info_lines(id3, scratch, sizeof scratch);
+        int size = cover_size(lines);
+        const struct bitmap *art = size >= NP_ART_MIN ? ui_art_current(size)
+                                                     : NULL;
+        /* the cover on top, the text under it; with no art the text takes
+         * the middle of the space above the band */
+        int y = art ? NP_TOP_PAD + size + NP_ART_GAP
+                    : NP_TOP_PAD + (NPL_BAND_Y - NP_TOP_PAD
+                                   - lines * NP_LINE_H) / 2;
+        if (art)
+            ui_art_draw(art, (vp.width - size) / 2, NP_TOP_PAD, size, 0);
+        draw_info(&vp, id3, buf, sizeof buf, y);
     }
     if (overlay)
         draw_volume_band(&vp);

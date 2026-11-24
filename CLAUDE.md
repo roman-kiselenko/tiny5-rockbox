@@ -44,10 +44,11 @@ Other build types still supported: `--type=w` (warble codec test tool),
 `u` USB serial, `m` small C lib, `x` LTO). Profiling (`p`) does not build on
 MIPS (also broken upstream).
 
-The UI fonts are committed as `.fnt` (`fonts/newui/`), so a normal build needs
-no FreeType. To regenerate them: `make -C tools convttf` (needs
-libfreetype-dev) plus `fonts/newui/mkfonts.sh` — only needed for the Noto CJK
-faces; Tiny5 Mono comes from `convbdf`.
+The UI's font is committed as `.fnt` (`fonts/newui/08-Tiny5Mono.fnt`, from
+`08-Tiny5Mono.bdf` via `convbdf`), so a normal build needs no FreeType. The
+Noto CJK faces are not committed; `make -C tools convttf` (needs
+libfreetype-dev) plus `fonts/newui/mkfonts.sh` generates them when a CJK build
+is started.
 
 Simulator keys: arrows = scroll wheel / prev / next, Enter = play/select,
 Backspace = back, Insert = menu, PgUp/PgDn = volume, Esc = power.
@@ -56,8 +57,9 @@ Install on the player: unzip `rockbox.zip` to the SD card root (it contains
 `.rockbox/`). The owner's card keeps settings and Bluetooth pairings in
 `.rockbox/` (`config.cfg`, `bt_config.conf`, `bt_devices.txt`): unzip over the
 existing folder (`unzip -o`) and check those files are unchanged. The archive
-is ~15 MB because it carries the Noto CJK faces (~27 MB on the card) as well as
-Tiny5 Mono (452 KB); the UI only uses Tiny5.
+is ~2.6 MB: firmware, codecs and Tiny5 Mono (452 KB). An older install still
+has `.rockbox/fonts/newui-*.fnt` on the card (the Noto CJK faces, 27 MB) — they
+are no longer installed and can be deleted.
 
 ## Verifying changes
 
@@ -179,10 +181,10 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
    https://github.com/Gissio/font_Tiny5Mono) for every UI slot; rows are 16 px,
    art rows 48 px, two-line rows 24 px, status bar 22 px. Latin, Greek,
    Cyrillic and IPA only.
-4. **CJK is deferred, not dropped.** The Noto Sans CJK JP faces
-   (`fonts/newui/newui-*.fnt`) are still generated and installed on the card;
-   the UI does not use them. They are the basis for a Chinese/Japanese/Korean
-   build.
+4. **CJK is deferred, not dropped.** Tiny5 Mono is the only UI font and the
+   only font installed. `fonts/newui/mkfonts.sh` (with `tools/convttf`) is kept
+   as the seed for a Chinese/Japanese/Korean build; the Noto faces themselves are
+   no longer in the tree.
 5. **Cover Flow over the music database.**
    - Database: `apps/tagcache.c/.h` (on-disk format, `TAGCACHE_MAGIC`, files
      `database_*.tcd`), `apps/tagtree.c` + `apps/tagnavi.config` (browse menus).
@@ -191,12 +193,22 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
    - Album art: `apps/recorder/albumart.c` (finds cover files),
      `apps/recorder/jpeg_load.c`, `bmp.c`, `resize.c` (decode + scale).
      `HAVE_ALBUMART` and `HAVE_JPEG` are enabled.
+   - `jpeg_load.c` reads baseline and progressive JPEGs. A progressive one is
+     decoded scan by scan into a 2 MiB static coefficient buffer
+     (`JPEG_PROG_BUF_SIZE`), keeping only the coefficients the downscaling
+     IDCT reads and the per-block nonzero mask the refinement scans need, in
+     stripes of MCU rows — at most `JPEG_PROG_MAX_PASSES` (4) passes over the
+     file. Covers too big for that buffer fail with -13 and show the
+     placeholder.
    - Decoding JPEGs while scrolling is too slow on the X1000: covers are
      decoded once and saved pre-scaled on the card
      (`/.rockbox/newui/thumbs`, 48 px for list rows = `UI_THUMB`, 150 px for
-     Cover Flow = `UI_COVER`, plus a 1-byte "no art" marker), with a RAM cache
-     of 24 thumbs and 16 covers (`apps/newui/ui_thumb.c`). Background cover
-     building pauses when the screen is off or music is playing.
+     Cover Flow = `UI_COVER`, or a one-byte "no art" marker holding
+     `NOART_VERSION`), with a RAM cache of 24 thumbs and 16 covers
+     (`apps/newui/ui_thumb.c`). `NOART_VERSION` is bumped whenever the
+     decoders learn to read more covers, so the ones they could not read are
+     tried again. Background cover building pauses when the screen is off or
+     music is playing.
 6. **Look settings** (`Settings › General › Display`): `newui_theme`
    (dark/light), `newui_style` (classic accent band / minimal light band),
    `newui_accent` (six colours), `newui_clock`. Plus `skip_startup_anim`.
