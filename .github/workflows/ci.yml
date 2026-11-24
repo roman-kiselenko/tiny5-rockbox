@@ -69,9 +69,26 @@ jobs:
           # fullinstall puts the UI fonts in simdisk/.rockbox/fonts
           make -j"$(nproc)"
           make fullinstall
+          # The script runner writes PNGs with host stdio: RB_SHOTDIR must
+          # exist before the run, and the sim is capped in time so a stuck
+          # screen cannot hang the job.
+          mkdir -p shots simdisk/.rockbox/icons
+          cp ../icons/tango_icons.16x16.bmp ../icons/tango_icons_viewers.16x16.bmp \
+             simdisk/.rockbox/icons/   # fullinstall does not copy the icon bitmaps
           SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \
-            RB_SCRIPT=../ci/smoke.script RB_SHOTDIR=shots ./rockboxui
+            RB_SCRIPT=../ci/smoke.script RB_SHOTDIR=shots \
+            timeout 180 ./rockboxui
           ls -l shots
+          n=$(find shots -name '*.png' | wc -l)
+          if [ "$n" -lt 7 ]; then
+            echo "The smoke test produced $n screenshots, expected 7"
+            exit 1
+          fi
+          # Screens are stored uncompressed, so a real screenshot is ~230 KB
+          if [ "$(find shots -name '*.png' -size +1k | wc -l)" -ne "$n" ]; then
+            echo "Some screenshots are empty"
+            exit 1
+          fi
 
       - name: Warble
         run: |

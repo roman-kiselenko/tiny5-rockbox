@@ -69,7 +69,9 @@ a key script and writes screenshots (see `uisimulator/common/sim_script.c`) —
 that is how `docs/screens/` is produced, and every screen is checked there
 before it goes on the device; `../newui-tools/loc.py [commit]` counts code
 lines. For pure cleanups, `mipsel-elf-size rockbox.elf` and the `.codec` sizes
-must be unchanged. Only the version string may differ.
+must be unchanged. Only the version string may differ. When running the script
+runner by hand, create the shot directory first: `RB_SHOTDIR` is written to
+with host `fopen`, and the sim just prints "cannot write" if it is missing.
 
 ## What was removed from upstream (and must not come back by accident)
 
