@@ -144,6 +144,17 @@ Battery usage is logged (a point every 5%, sampled every 30 s) to
 `.rockbox/newui/battery.txt` and shown as a chart in System › View Battery
 Usage (`apps/newui/scr_battery.c`).
 
+## Releases
+
+Pushing a tag `vX.Y.Z` (or running it from the Actions tab with a tag input)
+triggers `.github/workflows/release.yml`: it builds `--type=n`, renames
+`rockbox.zip` to **`rockbox-h2-vX.Y.Z.zip`**, and uploads it to the tag's
+release, creating the release if the tag has none. Put the release text in
+`docs/RELEASE_NOTES.md` and it is used as the release description.
+`.github/workflows/ci.yml` builds firmware + simulator + warble on every push
+to `master`; the simulator smoke test is `ci/smoke.script`, and its screenshots
+are uploaded as the `sim-screenshots` artifact.
+
 ## Tools
 
 `../newui-tools/` (outside the repo): `check.sh`, `simrun.sh`, `loc.py`,

@@ -1,0 +1,121 @@
+name: Release
+
+# Runs when a version tag is pushed:
+#   git tag v0.0.1 && git push origin v0.0.1
+#
+# It builds the erosqnative firmware and publishes it as
+# rockbox-h2-vX.Y.Z.zip on the release for that tag, creating the release if
+# the tag has no release yet. If you made the release by hand with your own
+# description, the workflow just uploads the archive to it.
+
+on:
+  push:
+    tags:
+      - "v*"
+  # Or run it by hand from the Actions tab, giving it a tag to build.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to build, e.g. v0.0.1"
+        required: true
+        default: "v0.0.1"
+
+permissions:
+  contents: write
+
+jobs:
+  firmware:
+    name: Build firmware and publish rockbox-h2-<tag>.zip
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Work out the tag and the archive name
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          case "$tag" in
+            v*) ;;
+            *) tag="v${tag}" ;;
+          esac
+          echo "TAG=${tag}" >> "$GITHUB_ENV"
+          echo "ASSET=rockbox-h2-${tag}.zip" >> "$GITHUB_ENV"
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential git perl zip unzip curl wget \
+            flex bison texinfo autoconf automake libtool bzip2 xz-utils
+
+      # tools/rockboxdev.sh builds binutils 2.38 and gcc 9.5.0 for mipsel-elf,
+      # which takes a long time. Cache it with the downloaded tarballs; change
+      # the key if the versions in rockboxdev.sh change.
+      - name: Cache the MIPS cross-compiler
+        uses: actions/cache@v4
+        id: toolchain
+        with:
+          path: |
+            ~/rockbox-toolchain
+            ~/.rbdev-dl
+          key: mipsel-elf-binutils-2.38-gcc-9.5.0
+
+      - name: Build the MIPS cross-compiler (skipped when cached)
+        run: |
+          if [ ! -x "$HOME/rockbox-toolchain/bin/mipsel-elf-gcc" ]; then
+            RBDEV_PREFIX="$HOME/rockbox-toolchain" \
+            RBDEV_TARGET=i \
+            RBDEV_DOWNLOAD="$HOME/.rbdev-dl" \
+            tools/rockboxdev.sh
+          fi
+          export PATH="$HOME/rockbox-toolchain/bin:$PATH"
+          mipsel-elf-gcc --version
+
+      - name: Build the firmware
+        run: |
+          export PATH="$HOME/rockbox-toolchain/bin:$PATH"
+          mkdir -p build
+          cd build
+          ../tools/configure --target=erosqnative --type=n
+          make -j"$(nproc)"
+          make zip
+
+      - name: Check the archive
+        run: |
+          unzip -l build/rockbox.zip | head -20
+          echo "entries under .rockbox: $(unzip -l build/rockbox.zip | grep -c '.rockbox/')"
+          unzip -l build/rockbox.zip | grep -E "rockbox\.elf|08-Tiny5Mono\.fnt"
+
+      - name: Name the archive rockbox-h2-vX.Y.Z.zip
+        run: |
+          mv build/rockbox.zip "$ASSET"
+          ls -l "$ASSET"
+          sha256sum "$ASSET" | tee sha256sum.txt
+
+      - name: Create the release if the tag has none
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; only the archive is uploaded."
+          else
+            notes="Automatic build of \`${TAG}\` by the Release workflow.
+
+Unzip to the root of the SD card (it contains \`.rockbox/\`). Bluetooth needs hardware revision 4 (hw4)."
+            if [ -f docs/RELEASE_NOTES.md ]; then
+              notes="$(cat docs/RELEASE_NOTES.md)"
+            fi
+            prerelease=""
+            case "$TAG" in
+              *-*) prerelease="--prerelease" ;;
+            esac
+            gh release create "$TAG" --title "H2 Rockbox ${TAG}" $prerelease --notes "$notes"
+          fi
+
+      - name: Upload the archive
+        run: |
+          gh release upload "$TAG" "$ASSET" --clobber
+          echo "Published ${ASSET}: https://github.com/${GITHUB_REPOSITORY}/releases/tag/${TAG}"
+          echo "sha256: $(cat sha256sum.txt)"
