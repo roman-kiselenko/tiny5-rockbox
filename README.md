@@ -23,15 +23,16 @@ repo carries the current work on top of it.
 Grab the archive from the [releases of this repo](https://github.com/roman-kiselenko/tiny5-rockbox/releases)
 and unzip it to the root of the SD card — it contains the `.rockbox` folder.
 Unzipping over an existing install keeps your settings and Bluetooth pairings
-(`unzip -o rockbox.zip -d /path/to/sdcard`), because `.rockbox/config.cfg`,
-`bt_config.conf` and `bt_devices.txt` are not in the archive.
+(`unzip -o rockbox-h2-v0.0.1.zip -d /path/to/sdcard`), because
+`.rockbox/config.cfg`, `bt_config.conf` and `bt_devices.txt` are not in the
+archive.
 
-Until a release is published here, either [build from source](#build-from-source)
-or use the base project's **v1.1** archive
-([rockbox-h2-v1.1.zip](https://github.com/dismal-ad/h2-rockbox/releases/tag/v1.1),
-15 MB), which predates the Tiny5 Mono font and the System Status / Battery
-Usage screens. The 15 MB is mostly fonts: the Noto Sans CJK faces (about 27 MB
-on the card) plus Tiny5 Mono. The UI here uses Tiny5 Mono only, so the
+Releases are built by GitHub Actions: pushing a tag `vX.Y.Z` runs
+`.github/workflows/release.yml`, which compiles the firmware for `erosqnative`
+and uploads it as `rockbox-h2-vX.Y.Z.zip` to that tag's release.
+
+The archive is about 15 MB, mostly fonts: the Noto Sans CJK faces (about 27 MB
+on the card) plus Tiny5 Mono. The UI uses Tiny5 Mono only, so the
 `newui-*.fnt` files are dead weight — deleting them saves 27 MB and changes
 nothing (see [fonts](#fonts-and-languages)).
 
@@ -183,7 +184,8 @@ Tested on Ubuntu. Full steps, including the simulator, are in
 
 ```bash
 # tools needed to build
-sudo apt install build-essential git perl zip unzip wget flex bison texinfo
+sudo apt install build-essential git perl zip unzip wget flex bison texinfo \
+                 autoconf automake libtool libtool-bin
 
 # get the code
 git clone https://github.com/roman-kiselenko/tiny5-rockbox.git

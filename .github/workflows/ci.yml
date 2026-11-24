@@ -1,0 +1,105 @@
+name: CI
+
+# Builds everything the commit gate in CLAUDE.md requires: firmware,
+# simulator, warble. Runs on pushes to master and on pull requests; tags are
+# handled by Release.yml.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Firmware, simulator, warble
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential git perl zip unzip curl wget \
+            flex bison texinfo autoconf automake libtool libtool-bin bzip2 xz-utils \
+            libsdl2-dev
+
+      - name: Cache the MIPS cross-compiler
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/rockbox-toolchain
+            ~/.rbdev-dl
+          key: mipsel-elf-binutils-2.38-gcc-9.5.0
+
+      - name: Build the MIPS cross-compiler (skipped when cached)
+        run: |
+          if [ ! -x "$HOME/rockbox-toolchain/bin/mipsel-elf-gcc" ]; then
+            for t in gcc g++ xz bzip2 gzip make patch makeinfo automake libtool autoconf flex bison; do
+              command -v "$t" >/dev/null || { echo "Missing required tool: $t"; exit 1; }
+            done
+            RBDEV_PREFIX="$HOME/rockbox-toolchain" \
+            RBDEV_TARGET=i \
+            RBDEV_DOWNLOAD="$HOME/.rbdev-dl" \
+            tools/rockboxdev.sh
+          fi
+          export PATH="$HOME/rockbox-toolchain/bin:$PATH"
+          mipsel-elf-gcc --version
+
+      - name: Firmware
+        run: |
+          export PATH="$HOME/rockbox-toolchain/bin:$PATH"
+          mkdir -p build-n
+          cd build-n
+          ../tools/configure --target=erosqnative --type=n
+          make -j"$(nproc)"
+          make zip
+          ls -l rockbox.zip
+
+      - name: Simulator
+        run: |
+          export PATH="$HOME/rockbox-toolchain/bin:$PATH"
+          mkdir -p build-s
+          cd build-s
+          ../tools/configure --target=erosqnative --type=s
+          # fullinstall puts the UI fonts in simdisk/.rockbox/fonts
+          make -j"$(nproc)"
+          make fullinstall
+          # The script runner writes PNGs with host stdio: RB_SHOTDIR must
+          # exist before the run, and the sim is capped in time so a stuck
+          # screen cannot hang the job.
+          mkdir -p shots simdisk/.rockbox/icons
+          cp ../icons/tango_icons.16x16.bmp ../icons/tango_icons_viewers.16x16.bmp \
+             simdisk/.rockbox/icons/   # fullinstall does not copy the icon bitmaps
+          SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \
+            RB_SCRIPT=../ci/smoke.script RB_SHOTDIR=shots \
+            timeout 180 ./rockboxui
+          ls -l shots
+          n=$(find shots -name '*.png' | wc -l)
+          if [ "$n" -lt 7 ]; then
+            echo "The smoke test produced $n screenshots, expected 7"
+            exit 1
+          fi
+          # Screens are stored uncompressed, so a real screenshot is ~230 KB
+          if [ "$(find shots -name '*.png' -size +1k | wc -l)" -ne "$n" ]; then
+            echo "Some screenshots are empty"
+            exit 1
+          fi
+
+      - name: Warble
+        run: |
+          export PATH="$HOME/rockbox-toolchain/bin:$PATH"
+          mkdir -p build-w
+          cd build-w
+          ../tools/configure --target=erosqnative --type=w
+          make -j"$(nproc)"
+
+      - name: Keep the screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: sim-screenshots
+          path: build-s/shots
