@@ -247,7 +247,7 @@ static void draw(struct viewport *vp)
 {
     struct viewport *last = lcd_set_viewport(vp);
     const int small = ui_font(UI_FONT_SMALL), row = ui_font(UI_FONT_ROW);
-    const unsigned acc = ui_accent(), bg = UI_COL_BG;
+    const unsigned acc = ui_accent_highlight(), bg = UI_COL_BG;
     const int pw = CH_X1 - CH_X0;
     char buf[48];
     struct header h;

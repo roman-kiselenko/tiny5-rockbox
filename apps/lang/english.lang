@@ -17642,7 +17642,7 @@
 </phrase>
 <phrase>
   id: LANG_NEWUI_STYLE_MINIMAL
-  desc: new UI: selection style, a light rounded card
+  desc: new UI: selection style, a plain band in the theme colour
   user: core
   <source>
     *: "Minimal"
@@ -17652,104 +17652,6 @@
   </dest>
   <voice>
     *: "Minimal"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_NEWUI_ACCENT
-  desc: new UI: Display setting
-  user: core
-  <source>
-    *: "Accent Colour"
-  </source>
-  <dest>
-    *: "Accent Colour"
-  </dest>
-  <voice>
-    *: "Accent Colour"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_NEWUI_COL_GRAPHITE
-  desc: new UI: accent colour
-  user: core
-  <source>
-    *: "Graphite"
-  </source>
-  <dest>
-    *: "Graphite"
-  </dest>
-  <voice>
-    *: "Graphite"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_NEWUI_COL_BLUE
-  desc: new UI: accent colour
-  user: core
-  <source>
-    *: "Blue"
-  </source>
-  <dest>
-    *: "Blue"
-  </dest>
-  <voice>
-    *: "Blue"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_NEWUI_COL_RED
-  desc: new UI: accent colour
-  user: core
-  <source>
-    *: "Red"
-  </source>
-  <dest>
-    *: "Red"
-  </dest>
-  <voice>
-    *: "Red"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_NEWUI_COL_GREEN
-  desc: new UI: accent colour
-  user: core
-  <source>
-    *: "Green"
-  </source>
-  <dest>
-    *: "Green"
-  </dest>
-  <voice>
-    *: "Green"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_NEWUI_COL_PURPLE
-  desc: new UI: accent colour
-  user: core
-  <source>
-    *: "Purple"
-  </source>
-  <dest>
-    *: "Purple"
-  </dest>
-  <voice>
-    *: "Purple"
-  </voice>
-</phrase>
-<phrase>
-  id: LANG_NEWUI_COL_ORANGE
-  desc: new UI: accent colour
-  user: core
-  <source>
-    *: "Orange"
-  </source>
-  <dest>
-    *: "Orange"
-  </dest>
-  <voice>
-    *: "Orange"
   </voice>
 </phrase>
 <phrase>
@@ -17880,7 +17782,7 @@
 </phrase>
 <phrase>
   id: LANG_NEWUI_THEME
-  desc: new UI: Display setting, dark or light screens
+  desc: new UI: Display setting, the UI palette
   user: core
   <source>
     *: "Theme"
@@ -17918,6 +17820,90 @@
   </dest>
   <voice>
     *: "Light"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEWUI_THEME_NORD
+  desc: new UI: theme, the Nord palette: warm grey on deep blue-black
+  user: core
+  <source>
+    *: "Nord"
+  </source>
+  <dest>
+    *: "Nord"
+  </dest>
+  <voice>
+    *: "Nord"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEWUI_THEME_GOTHAM
+  desc: new UI: theme, the Gotham palette: teal on navy
+  user: core
+  <source>
+    *: "Gotham"
+  </source>
+  <dest>
+    *: "Gotham"
+  </dest>
+  <voice>
+    *: "Gotham"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEWUI_THEME_ROSE_PINE
+  desc: new UI: theme, the Rose Pine palette: pale rose on plum purple
+  user: core
+  <source>
+    *: "Rose Pine"
+  </source>
+  <dest>
+    *: "Rose Pine"
+  </dest>
+  <voice>
+    *: "Rose Pine"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEWUI_THEME_TOKYO_NIGHT
+  desc: new UI: theme, the Tokyo Night palette: periwinkle on midnight blue
+  user: core
+  <source>
+    *: "Tokyo Night"
+  </source>
+  <dest>
+    *: "Tokyo Night"
+  </dest>
+  <voice>
+    *: "Tokyo Night"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEWUI_THEME_ONE_LIGHT
+  desc: new UI: theme, the One Light palette: dark ink on off-white
+  user: core
+  <source>
+    *: "One Light"
+  </source>
+  <dest>
+    *: "One Light"
+  </dest>
+  <voice>
+    *: "One Light"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEWUI_THEME_GITHUB_LIGHT
+  desc: new UI: theme, the GitHub Light palette: dark text on off-white
+  user: core
+  <source>
+    *: "GitHub Light"
+  </source>
+  <dest>
+    *: "GitHub Light"
+  </dest>
+  <voice>
+    *: "GitHub Light"
   </voice>
 </phrase>
 <phrase>

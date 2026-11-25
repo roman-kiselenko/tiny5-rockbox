@@ -210,8 +210,10 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
      tried again. Background cover building pauses when the screen is off or
      music is playing.
 6. **Look settings** (`Settings › General › Display`): `newui_theme`
-   (dark/light), `newui_style` (classic accent band / minimal light band),
-   `newui_accent` (six colours), `newui_clock`. Plus `skip_startup_anim`.
+   (dark, light, nord, gotham, rose-pine, tokyo-night, one-light, github-light),
+   `newui_style` (classic accent band / minimal band), `newui_clock`. The
+   accent is derived from the theme, there is no accent setting. Plus
+   `skip_startup_anim`.
 7. Everything is built and checked in the simulator at 320×240 before the
    device, driven by the scroll wheel.
 
@@ -245,6 +247,10 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
 - `docs/newui/PLAN.md` — the design as built, with the deltas from the original
   iPod-era draft.
 - `docs/newui/POWER.md` — battery review, measurements, remaining steps.
+- `docs/INTERFACE.md` (screens, controls, fonts), `docs/BLUETOOTH.md` (the
+  Bluedroid port and driver), `docs/CUT-DOWN.md` (what was removed from
+  upstream), `docs/DEVELOPING.md` (build types, simulator testing, releases).
+  The README is a short introduction that links to these.
 - `docs/README` — build and install in detail; `fonts/README` — the rules for
   fonts in this tree; `docs/UISIMULATOR` is upstream's generic simulator doc.
 - **`tutorial.md`** — a long Rockbox API tutorial (LCD drawing, drawmodes,

@@ -102,17 +102,16 @@ static void draw_art_row(struct viewport *vp, int y, int row_h,
 
     if (selected)
         ui_selection(ax, y, vp->width - ax -
-                     (scrollbar ? SCROLLBAR_W + 3 : 0), row_h - 1);
+                     (scrollbar ? SCROLLBAR_W + 3 : 0), row_h);
     if (cover && thumb)
         lcd_bitmap(thumb, 0, y, UI_THUMB, UI_THUMB);
     else if (cover)
         ui_art_placeholder(0, y, UI_THUMB, 0);
-    ui_fill_rect(ax, y + row_h - 1, vp->width - ax, 1, UI_COL_TRACK);
 
     int row = ui_font(UI_FONT_ROW), body = ui_font(UI_FONT_BODY);
     if (line2[0])
     {
-        int top = y + (row_h - 1 - font_get(row)->height - font_get(body)->height) / 2;
+        int top = y + (row_h - font_get(row)->height - font_get(body)->height) / 2;
         ui_text(tx, top, row, selected ? ui_sel_text() : UI_COL_TEXT, name, tw, -1);
         /* a TAB splits the second line: the part after it stays whole,
          * on the right */
@@ -128,11 +127,11 @@ static void draw_art_row(struct viewport *vp, int y, int row_h,
         ui_text(tx, y2, body, col2, line2, lw, -1);
     }
     else
-        ui_text_vcenter(tx, y, row_h - 1, row, selected ? ui_sel_text() : UI_COL_TEXT,
+        ui_text_vcenter(tx, y, row_h, row, selected ? ui_sel_text() : UI_COL_TEXT,
                         name, tw, -1);
 
     if (drills)
-        ui_drill(text_right, y, row_h - 1, ui_sel_text());
+        ui_drill(text_right, y, row_h, ui_sel_text());
 }
 
 static void draw_title(struct screen *display, struct gui_synclist *list,
@@ -149,7 +148,6 @@ static void draw_title(struct screen *display, struct gui_synclist *list,
     }
     ui_text_vcenter(UI_MARGIN, 0, row_h, ui_font(UI_FONT_TITLE), UI_COL_TEXT,
                     list->title, vp->width - 2 * UI_MARGIN, -1);
-    ui_fill_rect(0, row_h - 1, vp->width, 1, UI_COL_TRACK);
     (void)display;
 }
 

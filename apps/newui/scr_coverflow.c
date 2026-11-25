@@ -659,24 +659,22 @@ static void draw_song_panel(struct viewport *vp, int a, int sel, int first)
     char path[MAX_PATH], artist[64], len[16];
 
     /* the album's name under the covers would show either side of the
-       panel: clear that band, then the panel with its sides outlined */
+       panel: clear that band, then the panel. No outline: the panel's own
+       background against the covers is the edge, as in a terminal */
     ui_fill_rect(0, vp->height - 2 * font_get(row)->height - CF_TEXT_BOTTOM,
                  vp->width, 2 * font_get(row)->height + CF_TEXT_BOTTOM, UI_COL_BG);
     ui_fill_rect(SL_X, SL_TOP, SL_W, vp->height - SL_TOP, UI_COL_BG);
-    ui_fill_rect(SL_X - 1, SL_TOP, 1, vp->height - SL_TOP, ui_col(UI_C_OUTLINE));
-    ui_fill_rect(SL_X + SL_W, SL_TOP, 1, vp->height - SL_TOP, ui_col(UI_C_OUTLINE));
 
     /* header: album and artist */
     lcd_set_drawmode(DRMODE_SOLID);
     lcd_gradient_fillrect(SL_X, SL_TOP, SL_W, SL_HEAD_H, ui_sel_top(), ui_accent());
-    ui_fill_rect(SL_X, SL_TOP + SL_HEAD_H - 1, SL_W, 1, ui_col(UI_C_OUTLINE));
     artist[0] = '\0';
     tagtree_album_info(albums[a].seek, path, sizeof(path), artist, sizeof(artist), NULL);
     int th = font_get(row)->height, ah = artist[0] ? th : 0;
     int ty = SL_TOP + (SL_HEAD_H - th - ah) / 2;
-    ui_text(SL_X + SL_PAD, ty, row, UI_COL_ON_ACCENT, names + albums[a].name, tw, -1);
+    ui_text(SL_X + SL_PAD, ty, row, ui_sel_text(), names + albums[a].name, tw, -1);
     if (artist[0])
-        ui_text(SL_X + SL_PAD, ty + th, row, UI_COL_ON_ACCENT2,
+        ui_text(SL_X + SL_PAD, ty + th, row, ui_sel_text2(),
                 artist, tw, -1);
 
     /* the songs */

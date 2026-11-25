@@ -40,12 +40,12 @@
 #define UI_ART_ROW_H    48  /* row with a cover: UI_THUMB fills the row */
 #define UI_LINE2_ROW_H  24  /* name + grey second line: two lines + 6 px */
 
-/* colours follow the theme (Dark or Light, ui_style.c) */
+/* colours follow the theme (Dark, Light, Nord or Gotham, ui_style.c) */
 enum ui_col {
     UI_C_BG, UI_C_TEXT, UI_C_TEXT2, UI_C_MUTED, UI_C_SEL, UI_C_SEL_TEXT,
-    UI_C_TRACK, UI_C_PANEL, UI_C_ARTIST, UI_C_ALBUM, UI_C_FILL,
-    UI_C_BAR_TOP, UI_C_BAR_BOTTOM, UI_C_BAR_LINE, UI_C_PH_BG, UI_C_PH_FG,
-    UI_C_TRACK_TOP, UI_C_TRACK_BOTTOM, UI_C_OUTLINE, UI_C_EDGE,
+    UI_C_SEL_TEXT2, UI_C_TRACK, UI_C_PANEL, UI_C_ARTIST, UI_C_ALBUM, UI_C_FILL,
+    UI_C_BAR_LINE, UI_C_PH_BG, UI_C_PH_FG,
+    UI_C_OUTLINE, UI_C_EDGE,
     UI_C_ON_ACCENT, UI_C_ON_ACCENT2, UI_C_STATUS_FG,
     UI_C_LETTER_TOP, UI_C_LETTER_BOTTOM, UI_C_LETTER_FG, UI_C_COUNT
 };
@@ -56,25 +56,51 @@ unsigned ui_col(enum ui_col c);
 #define UI_COL_MUTED    ui_col(UI_C_MUTED)
 #define UI_COL_SEL      ui_col(UI_C_SEL)       /* Minimal selection */
 #define UI_COL_SEL_TEXT ui_col(UI_C_SEL_TEXT)
-#define UI_COL_TRACK    ui_col(UI_C_TRACK)     /* progress track */
+#define UI_COL_SEL_TEXT2 ui_col(UI_C_SEL_TEXT2) /* secondary text on it */
+#define UI_COL_TRACK    ui_col(UI_C_TRACK)     /* recessed surfaces */
 #define UI_COL_FILL     ui_col(UI_C_FILL)      /* progress, sliders */
 #define UI_COL_ARTIST   ui_col(UI_C_ARTIST)    /* Now Playing */
 #define UI_COL_ALBUM    ui_col(UI_C_ALBUM)
+#define UI_COL_BAR_LINE ui_col(UI_C_BAR_LINE)  /* the track a bar fills */
 #define UI_COL_PH_BG    ui_col(UI_C_PH_BG)     /* the no-cover placeholder */
 #define UI_COL_PH_FG    ui_col(UI_C_PH_FG)
 #define UI_COL_EDGE     ui_col(UI_C_EDGE)      /* a cover seen edge-on */
 #define UI_COL_ON_ACCENT  ui_col(UI_C_ON_ACCENT) /* text on accent bars */
 #define UI_COL_ON_ACCENT2 ui_col(UI_C_ON_ACCENT2)
 #define UI_COL_STATUS   ui_col(UI_C_STATUS_FG) /* the status bar's text and icons */
-#define UI_COL_ACCENT   ui_accent()  /* the user's accent colour */
+#define UI_COL_ACCENT   ui_accent()  /* the theme's accent colour */
 #define UI_COL_PANEL    ui_col(UI_C_PANEL)     /* pop-up panels */
 
 /* --- the chosen look (ui_style.c) --- */
 
+/* The eight palettes: Dark (black), Light (white, as the iPod), Nord (deep
+ * polar-night blue with warm grey text), Gotham (navy with teal text), Rose
+ * Pine (plum purple with pale rose text), Tokyo Night (midnight blue with pale
+ * periwinkle text), One Light and GitHub Light (dark text on off-white). Each
+ * carries its own accent; there is no separate accent setting. */
+enum ui_theme {
+    UI_THEME_DARK,
+    UI_THEME_LIGHT,
+    UI_THEME_NORD,
+    UI_THEME_GOTHAM,
+    UI_THEME_ROSE_PINE,
+    UI_THEME_TOKYO_NIGHT,
+    UI_THEME_ONE_LIGHT,
+    UI_THEME_GITHUB_LIGHT,
+    UI_THEME_COUNT
+};
+
 unsigned ui_accent(void);
-/* Light theme: white background, as the iPod */
+/* the accent where it is a fill or an icon (progress, plots, status icons):
+ * the dark themes' deep selection blue lightens to its band's top there */
+unsigned ui_accent_highlight(void);
+/* the theme's warning red (a low battery) */
+unsigned ui_red(void);
+/* The chosen theme, 0..UI_THEME_COUNT-1 */
+int ui_theme(void);
+/* A light-background theme: Light, One Light or GitHub Light */
 bool ui_light(void);
-/* Minimal style: the selection is a light card, else an accent bar */
+/* Minimal style: the selection is the theme's own band, else an accent bar */
 bool ui_minimal(void);
 /* Draws the selection behind a row at x, y, w, h */
 void ui_selection(int x, int y, int w, int h);
@@ -84,6 +110,10 @@ unsigned ui_sel_bg(void);
 unsigned ui_sel_top(void);
 unsigned ui_sel_text(void);
 unsigned ui_sel_text2(void);
+/* text to draw on any band of colour `band` (a bright band takes the theme's
+ * background, the rest take the theme's on-accent colour) */
+unsigned ui_text_on(unsigned band);
+unsigned ui_text_on2(unsigned band);
 
 /* --- transitions (ui_transition.c) --- */
 

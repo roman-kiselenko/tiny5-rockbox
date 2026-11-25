@@ -116,9 +116,7 @@ static void draw(struct viewport *vp)
 
     ui_text_vcenter(UI_MARGIN, y, ST_LINE_H, title, UI_COL_TEXT,
                     str(LANG_NEWUI_STATUS), 0, -1);
-    y += ST_LINE_H + 2;
-    ui_fill_rect(0, y, vp->width, 1, ui_col(UI_C_BAR_LINE));
-    y += 4;
+    y += ST_LINE_H + 6;
 
     /* CPU: the load as a bar, the number at the right */
     const int load = cpu_busy();          /* -1 when not measured */
@@ -137,7 +135,7 @@ static void draw(struct viewport *vp)
                  ui_col(UI_C_BAR_LINE));
     if (busy > 0)
         ui_fill_rect(bx, y + (ST_LINE_H - ST_BAR_H) / 2, bw * busy / 100,
-                     ST_BAR_H, ui_accent());
+                     ST_BAR_H, ui_accent_highlight());
     ui_text_vcenter(vp->width - UI_MARGIN - pw, y, ST_LINE_H, font,
                    UI_COL_TEXT, pct, pw + 4, 1);
     y += ST_LINE_H;

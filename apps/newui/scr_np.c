@@ -94,7 +94,7 @@ static void draw_bar(int bx, int by, int bw, long part, long total)
     int fill = total > 0 ? (int)((long long)bw * part / total) : 0;
     ui_fill_rect(bx, by, bw, NPL_BAR_H, track);
     if (fill > 0)
-        ui_fill_rect(bx, by, MIN(fill, bw), NPL_BAR_H, ui_accent());
+        ui_fill_rect(bx, by, MIN(fill, bw), NPL_BAR_H, ui_accent_highlight());
 }
 
 /* While scrubbing: the same bar with a block where the cursor is */
@@ -122,7 +122,6 @@ static void draw_volume_band(struct viewport *vp)
     int by = NPL_BAND_Y + 1 + (band_h - 1 - NPL_BAR_H) / 2;
 
     ui_fill_rect(0, NPL_BAND_Y, vp->width, band_h, UI_COL_BG);
-    ui_fill_rect(0, NPL_BAND_Y, vp->width, 1, ui_col(UI_C_BAR_LINE));
     ui_text_vcenter(UI_MARGIN, by, NPL_BAR_H, font, UI_COL_TEXT,
                     label, lw + 4, -1);
     draw_bar(bx, by, bw, global_status.volume - lo, hi - lo);
@@ -146,7 +145,6 @@ static void draw_band(struct viewport *vp, const struct mp3entry *id3,
     int by = NPL_BAND_Y + 1 + (band_h - 1 - NPL_BAR_H) / 2;
 
     ui_fill_rect(0, NPL_BAND_Y, vp->width, band_h, UI_COL_BG);
-    ui_fill_rect(0, NPL_BAND_Y, vp->width, 1, ui_col(UI_C_BAR_LINE));
 
     ui_text_vcenter(UI_MARGIN, by, NPL_BAR_H, font, UI_COL_TEXT, left, lw + 4, -1);
     ui_text_vcenter(vp->width - UI_MARGIN - rw - 4, by, NPL_BAR_H, font,
