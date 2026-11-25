@@ -138,6 +138,13 @@ SIL OFL 1.1, 9 px tall, 7 px ascent, 5 px cap height, 6 px per character. `ui_fo
 at the same face today; the enum stays so the sizes can diverge later without
 touching the callers.
 
+The sixth slot, `UI_FONT_NUM`, is **Digital-7**, a 9 px seven-segment face for
+the digits, `:` and `-` of times and counts only: the status bar clock and
+battery, Now Playing's elapsed and remaining times, Cover Flow's track lengths,
+the lock-screen clock. `ui_text_num()` picks it for runs of those characters and
+leaves everything else Tiny5. It is committed as `fonts/newui/09-Digital7.fnt`
+(208 bytes), rasterised from the TTF by `tools/ttf2bdf.py` and `tools/convbdf`.
+
 The font is installed by `buildzip.pl` from `fonts/newui/`; glyph bitmaps are
 loaded from the card into the font cache on demand, so the file size costs disk
 space, not RAM. Icons are glyphs, not bitmaps: `⏵ ⏸ ⏹ ⏩ ⏪ ⏺ 🔒`, `BT` for
@@ -396,7 +403,8 @@ Connects to: `tagtree.c`/`tagcache.c` (library), `playback.c` events,
 
 - **Simulator first.** Every screen is built and checked in `build-sim` with a
   key script (`RB_SCRIPT`) writing PNGs to `RB_SHOTDIR`, run headless. The
-  screenshots in `docs/screens/` are made that way.
+  screenshots in `docs/screens/` are made that way, one run per theme,
+  by `ci/screens.sh`.
 - **The gallery** draws each widget with fake data, on the device as well as in
   the simulator, so fonts, colours and row heights can be checked on real
   hardware.

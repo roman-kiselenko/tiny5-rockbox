@@ -52,7 +52,7 @@ separated by colour only, the way a terminal does it.
 
 ## Fonts and languages
 
-The whole UI is **Tiny5 Mono** (9 px tall, SIL OFL 1.1) —
+The UI is **Tiny5 Mono** (9 px tall, SIL OFL 1.1) —
 [Gissio/font_Tiny5Mono](https://github.com/Gissio/font_Tiny5Mono) — so a row is
 16 px and the readout screens fit the panel. It carries Latin, Greek, Cyrillic
 and IPA, so Russian and other Cyrillic text display, using Rockbox's normal
@@ -61,6 +61,14 @@ everything in Noto Sans CJK, the UI font before the switch to Tiny5.)
 
 The face is committed as `.fnt` (`fonts/newui/08-Tiny5Mono.fnt`, converted from
 `08-Tiny5Mono.bdf` with `convbdf`), so a normal build needs no FreeType.
+
+**Times and counts use seven-segment numerals.** The `UI_FONT_NUM` slot is
+**Digital-7** (`fonts/newui/09-Digital7.fnt`, 9 px tall, 6 px advance, digits
+`0-9`, `:` and `-` only), and `ui_text_num()` draws runs of those characters
+with it while everything around them stays Tiny5: the status bar clock and
+battery number, Now Playing's elapsed and remaining times, Cover Flow's track
+lengths, the lock-screen clock. Both faces are 9 px on the same baseline, so a
+mixed string like `37%` needs no special alignment.
 
 **CJK is not supported yet.** The Noto Sans CJK JP faces (14/18/20/22/40 px,
 SIL OFL 1.1) from an earlier iteration of the UI are no longer in the tree —

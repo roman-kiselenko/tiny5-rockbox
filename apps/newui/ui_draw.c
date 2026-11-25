@@ -300,6 +300,91 @@ int ui_text_vcenter(int x, int y, int h, int font, unsigned color,
     return ui_text(x, ui_text_y(font, y, h), font, color, text, max_w, align);
 }
 
+/* Does the seven-segment face have this character? */
+static bool numeric_char(char c)
+{
+    return (c >= '0' && c <= '9') || c == ':' || c == '-';
+}
+
+static int num_char_width(char c, struct font *num, struct font *base)
+{
+    return font_get_width(numeric_char(c) ? num : base, (unsigned char)c);
+}
+
+/* Width of a string as ui_text_num() would draw it */
+int ui_text_num_width(int font, const char *text)
+{
+    struct font *num = font_get(ui_font(UI_FONT_NUM));
+    struct font *base = font_get(ui_resolve_font(font));
+    int w = 0;
+
+    for (const char *p = text; *p; p++)
+        w += num_char_width(*p, num, base);
+    return w;
+}
+
+/* ui_text() but with the digital numerals for runs of digits, ':' and '-':
+ * times and counts read like a display, the rest stays Tiny5. Both faces are
+ * 9 px tall and Tiny5's letters sit centred in that box, so the runs share a
+ * baseline. A string that is too long is cut from the end; numbers get no
+ * ellipsis. */
+int ui_text_num(int x, int y, int font, unsigned color, const char *text,
+                int max_w, int align)
+{
+    struct font *num = font_get(ui_font(UI_FONT_NUM));
+    struct font *base = font_get(ui_resolve_font(font));
+    char buf[128];
+    int len = MIN((int)sizeof(buf) - 1, (int)strlen(text));
+    int w = 0;
+
+    memcpy(buf, text, len);
+    buf[len] = '\0';
+    for (int i = 0; i < len; i++)
+        w += num_char_width(buf[i], num, base);
+
+    while (max_w > 0 && len > 0 && w > max_w)
+        w -= num_char_width(buf[--len], num, base);
+
+    if (max_w > 0 && align == 0)
+        x += (max_w - w) / 2;
+    else if (max_w > 0 && align > 0)
+        x += max_w - w;
+
+    /* lcd_setfont() sets the current viewport's font: put it back */
+    int vp_font = lcd_current_viewport->font;
+    lcd_set_drawmode(DRMODE_FG);
+    lcd_set_foreground(color);
+
+    for (int pos = 0; pos < len; )
+    {
+        bool numeric = numeric_char(buf[pos]);
+        int end = pos;
+        while (end < len && numeric_char(buf[end]) == numeric)
+            end++;
+
+        /* draw one run: temporarily end the string at the run's last byte */
+        char next = buf[end];
+        buf[end] = '\0';
+        lcd_setfont(numeric ? ui_font(UI_FONT_NUM) : ui_resolve_font(font));
+        lcd_putsxy(x, y, (const unsigned char *)buf + pos);
+        buf[end] = next;
+        for (int i = pos; i < end; i++)
+            x += num_char_width(buf[i], num, base);
+        pos = end;
+    }
+
+    lcd_set_drawmode(DRMODE_SOLID);
+    lcd_setfont(vp_font);
+    return w;
+}
+
+int ui_text_num_vcenter(int x, int y, int h, int font, unsigned color,
+                        const char *text, int max_w, int align)
+{
+    return ui_text_num(x, ui_text_y(font, y, h), font, color, text, max_w,
+                       align);
+}
+
 /* Untagged files have no title: fall back to the file name, minus the
  * extension, the same way the file browser spells it. */
 const char *ui_track_title(const struct mp3entry *id3, char *buf, int size)

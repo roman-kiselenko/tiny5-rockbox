@@ -45,10 +45,13 @@ Other build types still supported: `--type=w` (warble codec test tool),
 MIPS (also broken upstream).
 
 The UI's font is committed as `.fnt` (`fonts/newui/08-Tiny5Mono.fnt`, from
-`08-Tiny5Mono.bdf` via `convbdf`), so a normal build needs no FreeType. The
-Noto CJK faces are not committed; `make -C tools convttf` (needs
-libfreetype-dev) plus `fonts/newui/mkfonts.sh` generates them when a CJK build
-is started.
+`08-Tiny5Mono.bdf` via `convbdf`), so a normal build needs no FreeType. Times
+and counts use a second committed face, `fonts/newui/09-Digital7.fnt` (Digital-7,
+seven-segment, 208 bytes), generated from `digital-7-mono.ttf` by the stdlib-only
+`tools/ttf2bdf.py` and then `convbdf`; `ui_text_num()` in `apps/newui/ui_draw.c`
+picks it for runs of `0-9`, `:` and `-`. The Noto CJK faces are not committed;
+`make -C tools convttf` (needs libfreetype-dev) plus `fonts/newui/mkfonts.sh`
+generates them when a CJK build is started.
 
 Simulator keys: arrows = scroll wheel / prev / next, Enter = play/select,
 Backspace = back, Insert = menu, PgUp/PgDn = volume, Esc = power.
@@ -57,7 +60,8 @@ Install on the player: unzip `rockbox.zip` to the SD card root (it contains
 `.rockbox/`). The owner's card keeps settings and Bluetooth pairings in
 `.rockbox/` (`config.cfg`, `bt_config.conf`, `bt_devices.txt`): unzip over the
 existing folder (`unzip -o`) and check those files are unchanged. The archive
-is ~2.6 MB: firmware, codecs and Tiny5 Mono (452 KB). An older install still
+is ~2.6 MB: firmware, codecs, Tiny5 Mono (452 KB) and the Digital-7 numerals
+(208 B). An older install still
 has `.rockbox/fonts/newui-*.fnt` on the card (the Noto CJK faces, 27 MB) — they
 are no longer installed and can be deleted.
 
@@ -67,11 +71,11 @@ A change is good when the fresh builds pass: firmware, simulator, warble
 (plus a logf build for debug-path changes). `../newui-tools/check.sh` is the
 commit gate (firmware zip + simulator install, no new warnings);
 `../newui-tools/simrun.sh <script> <shotdir>` runs the simulator headless from
-a key script and writes screenshots (see `uisimulator/common/sim_script.c`) —
-that is how `docs/screens/` is produced, and every screen is checked there
-before it goes on the device; `../newui-tools/loc.py [commit]` counts code
-lines. For pure cleanups, `mipsel-elf-size rockbox.elf` and the `.codec` sizes
-must be unchanged. Only the version string may differ. When running the script
+a key script and writes screenshots (see `uisimulator/common/sim_script.c`),
+and every screen is checked there before it goes on the device; `ci/screens.sh`
+(+ `ci/screens.script`, `ci/scale2x.py`) regenerates `docs/screens/` for all
+themes; `../newui-tools/loc.py [commit]` counts code lines. For pure cleanups,
+`mipsel-elf-size rockbox.elf` and the `.codec` sizes must be unchanged. Only the version string may differ. When running the script
 runner by hand, create the shot directory first: `RB_SHOTDIR` is written to
 with host `fopen`, and the sim just prints "cannot write" if it is missing.
 
@@ -153,8 +157,10 @@ Usage (`apps/newui/scr_battery.c`).
 Pushing a tag `vX.Y.Z` (or running it from the Actions tab with a tag input)
 triggers `.github/workflows/release.yml`: it builds `--type=n`, renames
 `rockbox.zip` to **`rockbox-h2-vX.Y.Z.zip`**, and uploads it to the tag's
-release, creating the release if the tag has none. Put the release text in
-`docs/RELEASE_NOTES.md` and it is used as the release description.
+release, creating the release if the tag has none. **Each tag has its own notes
+file**, `docs/releases/<tag>.md`, which becomes that release's description;
+`docs/RELEASE_NOTES.md` indexes them. Write the notes before the tag (the
+workflow checks out the tag). The next release is **v0.0.3**.
 `.github/workflows/ci.yml` builds firmware + simulator + warble on every push
 to `master`; the simulator smoke test is `ci/smoke.script`, and its screenshots
 are uploaded as the `sim-screenshots` artifact.
@@ -180,9 +186,10 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
 3. **Font: Tiny5 Mono** (9 px, SIL OFL 1.1,
    https://github.com/Gissio/font_Tiny5Mono) for every UI slot; rows are 16 px,
    art rows 48 px, two-line rows 24 px, status bar 22 px. Latin, Greek,
-   Cyrillic and IPA only.
-4. **CJK is deferred, not dropped.** Tiny5 Mono is the only UI font and the
-   only font installed. `fonts/newui/mkfonts.sh` (with `tools/convttf`) is kept
+   Cyrillic and IPA only. `UI_FONT_NUM` is the exception: Digital-7 seven-segment
+   numerals, digits/`:`/`-` only, for times and counts.
+4. **CJK is deferred, not dropped.** Tiny5 Mono and the Digital-7 numerals are
+   the only fonts installed. `fonts/newui/mkfonts.sh` (with `tools/convttf`) is kept
    as the seed for a Chinese/Japanese/Korean build; the Noto faces themselves are
    no longer in the tree.
 5. **Cover Flow over the music database.**

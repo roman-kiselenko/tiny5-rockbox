@@ -139,16 +139,17 @@ static void draw_band(struct viewport *vp, const struct mp3entry *id3,
     format_mmss(left, sizeof(left), pos, false);
     format_mmss(right, sizeof(right), len - pos, true);
 
-    int lw = ui_text_width(font, "00:00"), rw = ui_text_width(font, "-00:00");
+    int lw = ui_text_num_width(font, "00:00"), rw = ui_text_num_width(font, "-00:00");
     int bx = UI_MARGIN + lw + UI_GAP;
     int bw = vp->width - UI_MARGIN - rw - UI_GAP - bx;
     int by = NPL_BAND_Y + 1 + (band_h - 1 - NPL_BAR_H) / 2;
 
     ui_fill_rect(0, NPL_BAND_Y, vp->width, band_h, UI_COL_BG);
 
-    ui_text_vcenter(UI_MARGIN, by, NPL_BAR_H, font, UI_COL_TEXT, left, lw + 4, -1);
-    ui_text_vcenter(vp->width - UI_MARGIN - rw - 4, by, NPL_BAR_H, font,
-                    UI_COL_TEXT, right, rw + 4, 1);
+    ui_text_num_vcenter(UI_MARGIN, by, NPL_BAR_H, font, UI_COL_TEXT, left, lw + 4,
+                        -1);
+    ui_text_num_vcenter(vp->width - UI_MARGIN - rw - 4, by, NPL_BAR_H, font,
+                       UI_COL_TEXT, right, rw + 4, 1);
 
     if (scrubbing)
         draw_scrub_bar(bx, by, bw, pos, len);

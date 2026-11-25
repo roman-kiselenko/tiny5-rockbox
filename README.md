@@ -24,8 +24,8 @@ it to the root of the SD card — it contains the `.rockbox` folder. Unzipping
 over an existing install (`unzip -o rockbox-h2-vX.Y.Z.zip -d /path/to/sdcard`)
 keeps your settings and Bluetooth pairings, because `.rockbox/config.cfg`,
 `bt_config.conf` and `bt_devices.txt` are not in the archive. The archive is
-about 2.6 MB: firmware, codecs and Tiny5 Mono (452 KB), the only font the UI
-needs.
+about 2.6 MB: firmware, codecs and the two UI fonts, Tiny5 Mono (452 KB) and
+the Digital-7 numerals (208 B).
 
 ## Features
 
@@ -56,24 +56,38 @@ needs.
 - **Cut down to one player.** No other targets, no plugins, no voice, no theme
   engine, no game-music codecs. The core is about 296k lines against roughly
   1.6M upstream. → [docs/CUT-DOWN.md](docs/CUT-DOWN.md)
-- **Fonts.** Tiny5 Mono only; Latin, Greek, Cyrillic and IPA. CJK is deferred,
-  not dropped — `fonts/newui/mkfonts.sh` is kept as the seed for a
-  Chinese/Japanese/Korean build. → [docs/INTERFACE.md](docs/INTERFACE.md)
+- **Fonts.** Tiny5 Mono, with seven-segment **Digital-7** numerals for times
+  and counts — the clock, the battery, track lengths. Latin, Greek, Cyrillic
+  and IPA. CJK is deferred, not dropped — `fonts/newui/mkfonts.sh` is kept as
+  the seed for a Chinese/Japanese/Korean build. → [docs/INTERFACE.md](docs/INTERFACE.md)
 
 ## Screenshots
 
 Captured headlessly by the simulator over a test library with scripted button
-presses — 320×240 screens stored at 2× (640×480), Dark theme. More are in
+presses — `ci/screens.script`, run by `ci/screens.sh` — 320×240 screens stored
+at 2× (640×480), one folder per theme in
 [docs/screens](docs/screens); how to make them is in
-[docs/DEVELOPING.md](docs/DEVELOPING.md).
+[docs/DEVELOPING.md](docs/DEVELOPING.md). Each folder holds Home, Now Playing
+(playing, paused, with the volume readout), Cover Flow, the file browser and an
+album, the settings menu and a submenu, the System menu, System Status and the
+Battery Usage chart.
+
+The eight palettes, one layout:
+
+| Dark | Light | Nord | Gotham |
+|---|---|---|---|
+| ![Home, Dark](docs/screens/dark/home.png) | ![Home, Light](docs/screens/light/home.png) | ![Home, Nord](docs/screens/nord/home.png) | ![Home, Gotham](docs/screens/gotham/home.png) |
+| ![Home, Rose Pine](docs/screens/rose-pine/home.png) | ![Home, Tokyo Night](docs/screens/tokyo-night/home.png) | ![Home, One Light](docs/screens/one-light/home.png) | ![Home, GitHub Light](docs/screens/github-light/home.png) |
+
+In detail (Dark):
 
 | | |
 |---|---|
-| ![Home menu](docs/screens/home.png) *Home* | ![Now Playing while playing](docs/screens/now-playing.png) *Now Playing* |
-| ![Now Playing, paused](docs/screens/now-playing-paused.png) *Paused* | ![Now Playing with the volume readout](docs/screens/now-playing-volume.png) *Volume readout* |
-| ![File browser](docs/screens/file-browser.png) *File browser* | ![An album in the file browser](docs/screens/album-tracks.png) *Album tracks* |
-| ![Settings menu](docs/screens/settings.png) *Settings* | ![General settings submenu](docs/screens/general-settings.png) *A submenu* |
-| ![System status screen](docs/screens/system-status.png) *System status (System › System Status)* | |
+| ![Home menu](docs/screens/dark/home.png) *Home* | ![Now Playing while playing](docs/screens/dark/now-playing.png) *Now Playing* |
+| ![Now Playing, paused](docs/screens/dark/now-playing-paused.png) *Paused* | ![Now Playing with the volume readout](docs/screens/dark/now-playing-volume.png) *Volume readout* |
+| ![Cover Flow](docs/screens/dark/cover-flow.png) *Cover Flow* | ![File browser](docs/screens/dark/file-browser.png) *File browser* |
+| ![Settings menu](docs/screens/dark/settings.png) *Settings* | ![General settings submenu](docs/screens/dark/general-settings.png) *A submenu* |
+| ![System status screen](docs/screens/dark/system-status.png) *System status (System › System Status)* | ![Battery usage chart](docs/screens/dark/battery-usage.png) *Battery usage (System › View Battery Usage)* |
 
 ## References
 
@@ -93,6 +107,8 @@ What this project is built from:
   H4) with its patchram firmware in `BCM4343A1_*.c`.
 - **Tiny5 Mono** by [Gissio](https://github.com/Gissio/font_Tiny5Mono), SIL
   Open Font License 1.1 ([fonts/COPYING](fonts/COPYING)) — the UI font.
+- **Digital-7 Mono** by Sizenko Alexander (Style-7, 2008) — the seven-segment
+  numerals; freeware, see `fonts/newui/LICENSE-Digital7.txt`.
 - **Noto Sans CJK** (SIL OFL 1.1, `fonts/newui/LICENSE-NotoSansCJK.txt`) — the
   deferred CJK faces, no longer installed.
 - **Rockbox Utility** — the official way to put the Rockbox bootloader on the
@@ -110,5 +126,5 @@ Documentation:
 | [docs/BLUETOOTH.md](docs/BLUETOOTH.md) | Bluetooth: the stack, the driver, settings, cost |
 | [docs/CUT-DOWN.md](docs/CUT-DOWN.md) | what was removed from upstream and why it stays out |
 | [docs/UISIMULATOR](docs/UISIMULATOR) | upstream's simulator notes |
-| [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md) | the text used for each release |
+| [docs/RELEASE_NOTES.md](docs/RELEASE_NOTES.md) | the release notes — one file per tag in `docs/releases/` |
 | [tutorial.md](tutorial.md) | a Rockbox API tutorial (drawing, drawmodes, buttons and tick timing, menus, file I/O, config files, battery/backlight/RTC, with a quick reference card). Written for iPod Video *plugins*, so it reads `rb->lcd_draw()` where this tree uses `lcd_draw()`; there is no plugin loader here, so nothing in it runs. Kept as a reference for API signatures and idioms when writing screen code. |

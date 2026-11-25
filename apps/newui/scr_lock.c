@@ -101,7 +101,7 @@ static void draw(struct viewport *vp)
     }
     snprintf(buf, sizeof(buf), global_settings.timeformat ? "%d:%02d" : "%02d:%02d",
              hour, tm->tm_min);
-    ui_text(UI_MARGIN, y, big, UI_COL_TEXT, buf, tw, 0);
+    ui_text_num(UI_MARGIN, y, big, UI_COL_TEXT, buf, tw, 0);
     y += big_h;
     snprintf(buf, sizeof(buf), "%s %d %s", str(LANG_WEEKDAY_SUNDAY + tm->tm_wday),
              tm->tm_mday, str(LANG_MONTH_JANUARY + tm->tm_mon));

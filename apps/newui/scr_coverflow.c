@@ -685,12 +685,12 @@ static void draw_song_panel(struct viewport *vp, int a, int sel, int first)
         unsigned c = selected ? ui_sel_text() : UI_COL_TEXT;
         int sec = tracks[i].length / 1000;
         snprintf(len, sizeof(len), "%d:%02d", sec / 60, sec % 60);
-        int lw = ui_text_width(row, len);
+        int lw = ui_text_num_width(row, len);
         if (selected)
             ui_selection(SL_X, y, SL_W, SL_ROW_H);
         ui_text_vcenter(SL_X + SL_PAD, y, SL_ROW_H, row, c,
                         track_text + tracks[i].title, tw - lw - UI_GAP, -1);
-        ui_text_vcenter(SL_X + SL_PAD, y, SL_ROW_H, row, c, len, tw, 1);
+        ui_text_num_vcenter(SL_X + SL_PAD, y, SL_ROW_H, row, c, len, tw, 1);
     }
     lcd_update_viewport_rect(0, SL_TOP, vp->width, vp->height - SL_TOP);
     lcd_set_viewport(last);

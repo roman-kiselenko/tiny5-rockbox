@@ -1,0 +1,28 @@
+Digital-7 Mono
+==============
+
+Seven-segment digits used for times and counts in the new UI
+(`fonts/newui/09-Digital7.fnt`, generated from `09-Digital7.bdf`).
+
+Source: `fonts/newui/digital-7-mono.ttf`, Digital-7 Mono by Sizenko
+Alexander, Style-7, 2008 — http://www.styleseven.com
+
+The strings in the font's own name table are:
+
+    Created by Sizenko Alexander. © 2008 Style-7. All rights reserved.
+    http://www.styleseven.com
+
+    Freeware for personal use.
+    For commercial use please contuct us.   (sic — the font says "contuct")
+
+Read that before redistributing this tree commercially. The face is here
+because it is the classic seven-segment display font and is passed around
+freely; Rockbox's own font rules (fonts/README, rule 3) ask for a licence
+suitable for redistribution, and "all rights reserved, freeware for personal
+use" is thinner than the OFL the rest of the fonts use. If that is not
+acceptable, replace it: the .bdf is the source of truth and any 9 px
+seven-segment .bdf dropped into `fonts/newui/` with the same 6 px advance
+works with no code change — `ui_font.c` just names the file.
+
+The .bdf is generated from the .ttf with `tools/ttf2bdf.py` (stdlib only,
+no FreeType) and then `tools/convbdf`, see docs/DEVELOPING.md.
