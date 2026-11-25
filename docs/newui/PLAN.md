@@ -20,6 +20,7 @@ Deltas from the original plan, in one place:
 | Now Playing: big art + text column, page dots | Console-style readout: text lines, cover in the corner, one progress band |
 | Battery as an icon | Battery as a number, `37%`, red under 20%, `+` while charging |
 | Quick screen | Removed; its button opens Shortcuts |
+| Silver gradient status bar with a hairline | The status bar is the page's own colour: 22 px of the background, only its glyphs differ |
 | CJK text via Noto Sans CJK | Deferred: the faces are no longer installed, only `fonts/newui/mkfonts.sh` remains to make them |
 
 ---
@@ -66,26 +67,69 @@ y 240 └───────────────────────�
 ```
 
 - Side margin **12 px**, gap between elements **8 px**.
-- Background is black in the Dark theme, white in the Light theme.
+- Background is black in the Dark theme, white in the Light theme, deep
+  blue-black in Nord, navy in Gotham, plum purple in Rose Pine, midnight blue in
+  Tokyo Night, off-white in One Light and GitHub Light.
 - The screen has square corners; nothing is inset.
 
 ### Colours
 
-Both themes share the layout; only the palette changes (`ui_style.c`). The
-accent is one of six colours (Graphite, Blue, Red, Green, Purple, Orange).
+All eight themes share the layout; only the palette changes (`ui_style.c`).
+Each theme carries its own accent — there is no accent setting: Dark and Light
+use graphite, the rest their selection-background.
 
-| Use | Dark | Light |
-|---|---|---|
-| Background | `#000000` | `#FFFFFF` |
-| Primary text | `#FFFFFF` | `#141414` |
-| Secondary text | `#AAAAAA` | `#5E5E5E` |
-| Muted text | `#8C8C8C` | `#8C8C8C` |
-| Selection (Minimal) | `#EEEEEC` / text `#171717` | `#D6D6D6` / text `#141414` |
-| Selection (Classic) | the accent | the accent |
-| Progress track / fill | `#1C1C1C` / `#EEEEEC` | `#DCDCDC` / the accent |
-| Status bar band | `#3A3A3E` → `#161618`, hairline `#444448` | `#F4F4F4` → `#BEC0C2`, hairline `#8C8C90` |
-| Pop-up panel | `#262626` | `#F2F2F2` |
-| Cover placeholder | `#1C1C1C` / `#8C8C8C` | `#5C5C62` / `#D4D4D8` |
+| Use | Dark | Light | Nord | Gotham | Rose Pine | Tokyo Night | One Light | GitHub Light |
+|---|---|---|---|---|---|---|---|---|
+| Background | `#000000` | `#FFFFFF` | `#0B0E14` | `#0C1014` | `#1F1D2E` | `#1A1B26` | `#F8F8F8` | `#F6F8FA` |
+| Primary text | `#FFFFFF` | `#141414` | `#BFBDB6` | `#99D1CE` | `#E0DEF4` | `#C0CAF5` | `#2A2B33` | `#1F2328` |
+| Secondary text | `#AAAAAA` | `#5E5E5E` | `#9B9B93` | `#6FA6A3` | `#B0ADC0` | `#A9B1D6` | `#6B6C75` | `#57606A` |
+| Muted text | `#8C8C8C` | `#8C8C8C` | `#686868` | `#4E5166` | `#908CAA` | `#414868` | `#BBBBBB` | `#6E7781` |
+| Selection (Minimal) | `#EEEEEC` / `#171717` | `#D6D6D6` / `#141414` | `#1E232B` / `#BFBDB6` | `#195466` / `#99D1CE` | `#26233A` / `#E0DEF4` | `#414868` / `#C0CAF5` | `#BBBBBB` / `#2A2B33` | `#D0D7DE` / `#1F2328` |
+| Selection (Classic) | `#6E6E6E` | `#6E6E6E` | `#1B3A5B` | `#0A3749` | `#2F2C40` | `#283457` | `#2A2B33` | `#264F78` |
+| Text on the band | white | white | `#BFBDB6`; dark on a bright accent | `#99D1CE` | `#E0DEF4` | `#C0CAF5` | `#F8F8F8` | `#F6F8FA` |
+| Accent as a fill (progress, plots, icons) | `#6E6E6E` | `#6E6E6E` | `#76889C` | `#6C8791` | `#82808C` | `#7E859A` | `#2A2B33` | `#264F78` |
+| Progress track / fill | `#1C1C1C` / `#EEEEEC` | `#DCDCDC` / `#6E6E6E` | `#141920` / `#BFBDB6` | `#14181F` / `#99D1CE` | `#2A2740` / `#E0DEF4` | `#232733` / `#C0CAF5` | `#DEDEE3` / `#2A2B33` | `#D0D7DE` / `#264F78` |
+| Progress track | `#444448` | `#8C8C90` | `#39424D` | `#2B3841` | `#453F5C` | `#414868` | `#8A8B93` | `#D0D7DE` |
+| Pop-up panel | `#262626` | `#F2F2F2` | `#1E232B` | `#14181F` | `#26233A` | `#15161E` | `#F2F2F4` | `#FFFFFF` |
+| Cover placeholder | `#1C1C1C` / `#8C8C8C` | `#5C5C62` / `#D4D4D8` | `#1E232B` / `#686868` | `#14181F` / `#4E5166` | `#26233A` / `#908CAA` | `#15161E` / `#414868` | `#D5D6DD` / `#8B8C94` | `#D0D7DE` / `#6E7781` |
+| Battery warning red | `#F4624C` | `#F4624C` | `#EA6C73` | `#C23127` | `#EB6F92` | `#F7768E` | `#DE3D35` | `#CF222E` |
+
+Nord is the **Nord** palette (alacet/nord): `#0B0E14` `#BFBDB6` `#1B3A5B`
+`#1E232B` `#686868` `#C7C7C7`. The palette's other colours (`#EA6C73`
+`#7FD962` `#F9AF4F` `#53BDFA` `#CDA1FA` `#90E1C6`) are not drawn by the UI —
+the accent comes from the theme, not from a picker.
+
+Gotham is the **Gotham** palette: `#0C1014` `#99D1CE` `#0A3749` `#195466`
+`#4E5166` `#33859E` `#C23127` `#2AA889` `#EDB443`. Its palette has no surface
+lighter than the background, so the panels, tracks and the Minimal band use
+the palette's blue `#195466` and grey `#4E5166`, with `#14181F` and `#2B3841`
+mixed from the background for the softer surfaces.
+
+Rose Pine is the **Rose Pine** palette: `#1F1D2E` `#E0DEF4` `#2F2C40` `#26233A`
+`#EB6F92` `#31748F` `#F6C177` `#9CCFD8` `#C4A7E7` `#EBBCBA` `#908CAA`. The UI
+draws with background, foreground, selection, surface, muted and blush; rose,
+foam, gold, ice and plum stay unused except the plum end of the fast-scroll
+letter. `#B0ADC0` and `#453F5C` are mixed from the foreground and the surface.
+
+Tokyo Night is the **Tokyo Night** palette: `#1A1B26` `#C0CAF5` `#283457`
+`#15161E` `#F7768E` `#9ECE6A` `#E0AF68` `#7AA2F7` `#BB9AF7` `#7DCFFF` `#A9B1D6`
+`#414868`. Its palette 0, `#15161E`, is darker than the background, so panels
+and the no-cover placeholder sit recessed rather than raised; `#232733` for the
+progress track is mixed from the background. Green, gold and cyan stay unused.
+
+One Light is the **One Light** palette: `#F8F8F8` `#2A2B33` `#BBBBBB` `#DE3D35`
+`#3E953A` `#D2B67B` `#2F5AF3` `#A00095`. It is the second light theme: the page
+is off-white and the selection is inverted — a band of ink with off-white text.
+`#6B6C75` and `#DEDEE3` are mixed from the ink and the background; green, gold
+and magenta stay unused.
+
+GitHub Light is the **GitHub Light** palette: `#F6F8FA` `#1F2328` `#264F78`
+`#CF222E` `#116329` `#4D2D00` `#0969DA` `#8250DF` `#1B7C83` `#6E7781` `#57606A`
+`#8C959F`. Its selection-foreground, `#1F2328`, is too close to its
+selection-background `#264F78` to read at 9 px, so text on the accent band takes
+the palette's cursor-text `#F6F8FA` instead. The Minimal band, the tracks and the
+placeholder use GitHub's border grey `#D0D7DE`, mixed from the background and the
+palette's greys; green, orange, purple and teal stay unused.
 
 ### Font
 
@@ -116,7 +160,8 @@ Selection is one flat band in the selection colour, edge to edge, exactly as
 Home draws it — no card, no border, no gloss (`ui_selection()`). Long text is
 shortened with `…`; only the selected row's text scrolls. A 3 px scrollbar sits
 on the right when a list is longer than the page. Covers down the left edge of a
-list touch each other, with a hairline under the text.
+list touch each other. Nothing in the UI is ruled: rows, bars and panels are
+distinguished by their colour only, the way a terminal does it.
 
 ### Motion
 
@@ -150,12 +195,14 @@ Measurements are (x, y, width × height).
 
 ### 4.1 Status bar (every screen)
 
-A 22 px gradient band with a hairline at the bottom. Without a title it is:
-play-state glyphs on the left, the clock centred, Bluetooth and the battery on
-the right. Screens that name themselves (Home, Cover Flow, Now Playing…) put
-the title on the left and the clock moves to the centre only while there is
-room for both, otherwise it tucks in against the icons. The bar can be narrowed
-(Home draws it only over its menu). Battery: `37%`, `+` while charging, red
+The status bar is 22 px of the page's own background: no gradient, no band, no
+rule under it. Only its text and icons are drawn, in the theme's status colour.
+Without a title it is: play-state glyphs on the left, the clock centred,
+Bluetooth and the battery on the right. Screens that name themselves (Home,
+Cover Flow, Now Playing…) put the title on the left and the clock moves to the
+centre only while there is room for both, otherwise it tucks in against the
+icons. The bar can be narrowed (Home draws it only over its menu). Battery:
+`37%`, `+` while charging, red
 under 20%, blinking when critically low; the clock is a setting.
 
 ### 4.2 Home
@@ -267,9 +314,10 @@ width.
 
 `settings_list.c` and `apps/menus/` unchanged in behaviour, drawn by the new
 list widget: values in grey on the right of the row. New in Settings › General
-› Display: **theme** (Dark/Light), **selection style** (Classic accent band /
-Minimal light band), **accent colour** (six), **status bar clock**. Theme
-Settings and the Bluetooth submenu are gone — Bluetooth is a Home item.
+› Display: **theme** (Dark, Light, Nord, Gotham, Rose Pine, Tokyo Night, One
+Light, GitHub Light), **selection style** (Classic accent band / Minimal band),
+**status bar clock**. The accent comes from the theme. Theme Settings and the Bluetooth submenu are
+gone — Bluetooth is a Home item.
 
 ### 4.8 System screens
 
@@ -298,7 +346,7 @@ Settings and the Bluetooth submenu are gone — Bluetooth is a Home item.
 ```
 apps/newui/
   ui.h          design tokens: sizes, colours, the API
-  ui_style.c    the two themes, the two selection styles, the accents
+  ui_style.c    the seven palettes, the two selection styles, the accents
   ui_font.c     loading the UI font
   ui_draw.c     primitives: rects, gradients, rounded corners, alpha, text
                 with ellipsis, the drill chevron
@@ -385,8 +433,9 @@ Connects to: `tagtree.c`/`tagcache.c` (library), `playback.c` events,
 3. **CJK**: deferred, not abandoned — `fonts/newui/mkfonts.sh` stays for a
    later build; the generated faces are not committed until one exists.
 4. **Back** always goes to the parent screen, including from Now Playing.
-5. **Default look**: Dark theme, Classic selection (the accent band), Graphite
-   accent; Minimal and Light are options.
+5. **Default look**: Dark theme, Classic selection (the accent band); the other
+   palettes and Minimal are options. The accent is never chosen separately — it
+   belongs to the theme.
 6. **Power** locks the keys and turns the display off rather than sleeping the
    player, from any screen; one press wakes it.
 7. **Bluetooth is a Home item**, not a settings submenu.

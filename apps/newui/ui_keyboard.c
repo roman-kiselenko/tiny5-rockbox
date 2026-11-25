@@ -154,8 +154,8 @@ static void draw(struct viewport *vp, const char *text, int editpos, int set)
     const char *label = item_label(set, cur, buf);
     int box_w = MAX(SLOT_W, ui_text_width(title, label) + 16);
     ui_fill_round_rect(cx - box_w / 2, STRIP_Y, box_w, STRIP_H, 8, UI_COL_ACCENT);
-    ui_text_vcenter(cx - box_w / 2, STRIP_Y, STRIP_H, title, UI_COL_TEXT,
-                    label, box_w, 0);
+    ui_text_vcenter(cx - box_w / 2, STRIP_Y, STRIP_H, title,
+                    ui_text_on(UI_COL_ACCENT), label, box_w, 0);
     for (int side = -1; side <= 1; side += 2)
     {
         int edge = cx + side * (box_w / 2 + 4);

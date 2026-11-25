@@ -37,7 +37,6 @@
 #include "ui.h"
 
 #define BATT_LOW    20     /* below this the battery number turns red */
-#define BATT_RED    LCD_RGBPACK(0xf4, 0x62, 0x4c)
 #define ICON_GAP    6      /* between two status icons */
 
 static char status_title[48];
@@ -89,7 +88,7 @@ static const char *play_glyph(int mode)
 static unsigned glyph_color(int mode)
 {
     if (mode == STATUS_PLAY || mode == STATUS_RECORD)
-        return ui_accent();
+        return ui_accent_highlight();
     if (mode == STATUS_STOP)
         return UI_COL_MUTED;   /* stopped: keep it quiet */
     return UI_COL_STATUS;
@@ -127,7 +126,7 @@ static int draw_icons(int x, int font, const struct ui_status *st)
     if (st->bluetooth)
     {
         /* 1 = on, 2 = on and streaming */
-        draw_icon(cx, font, st->bluetooth > 1 ? ui_accent() : UI_COL_STATUS,
+        draw_icon(cx, font, st->bluetooth > 1 ? ui_accent_highlight() : UI_COL_STATUS,
                   UI_G_BT);
     }
     return icons_width(font, st);
@@ -141,7 +140,7 @@ static void draw_battery(int x_right, int w, const char *text, int percent,
 {
     ui_text_vcenter(x_right - w, 0, UI_STATUS_H, ui_font(UI_FONT_SMALL),
                     percent >= 0 && percent <= BATT_LOW && !charging ?
-                        BATT_RED : UI_COL_STATUS,
+                        ui_red() : UI_COL_STATUS,
                     text, 0, -1);
 }
 
@@ -178,20 +177,10 @@ void ui_status_draw(const struct ui_status *st)
     int font = ui_font(UI_FONT_SMALL);
 
     {
-        /* the iPod's bar: a vertical gradient (silver, or dark grey) and a
-           hairline */
-        unsigned top = ui_col(UI_C_BAR_TOP), bot = ui_col(UI_C_BAR_BOTTOM);
-        int h = vp->height - 1;
-        for (int y = 0; y < h; y++)
-        {
-            int t = y * 256 / (h - 1);
-            unsigned c = LCD_RGBPACK(
-                RGB_UNPACK_RED(top) + ((RGB_UNPACK_RED(bot) - RGB_UNPACK_RED(top)) * t >> 8),
-                RGB_UNPACK_GREEN(top) + ((RGB_UNPACK_GREEN(bot) - RGB_UNPACK_GREEN(top)) * t >> 8),
-                RGB_UNPACK_BLUE(top) + ((RGB_UNPACK_BLUE(bot) - RGB_UNPACK_BLUE(top)) * t >> 8));
-            ui_fill_rect(0, y, vp->width, 1, c);
-        }
-        ui_fill_rect(0, h, vp->width, 1, ui_col(UI_C_BAR_LINE));
+        /* The bar is the same colour as the rest of the screen: no gradient,
+           no rule, no band. It is just the top 22 px of the page, like a
+           terminal's header line; only its text and icons stand out. */
+        ui_fill_rect(0, 0, vp->width, vp->height, UI_COL_BG);
     }
 
     const bool titled = st->title && st->title[0];

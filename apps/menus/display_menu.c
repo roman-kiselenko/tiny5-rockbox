@@ -369,12 +369,11 @@ MENUITEM_SETTING(codepage_setting, &global_settings.default_codepage, codepage_c
 /* new UI: look */
 MENUITEM_SETTING(newui_theme, &global_settings.newui_theme, NULL);
 MENUITEM_SETTING(newui_style, &global_settings.newui_style, NULL);
-MENUITEM_SETTING(newui_accent, &global_settings.newui_accent, NULL);
 MENUITEM_SETTING(newui_clock, &global_settings.newui_clock, NULL);
 
 MAKE_MENU(display_menu, ID2P(LANG_DISPLAY),
             NULL, Icon_Display_menu,
-            &newui_theme, &newui_style, &newui_accent, &newui_clock,
+            &newui_theme, &newui_style, &newui_clock,
             &lcd_settings,
             &scroll_settings_menu,
             &peak_meter_menu,
