@@ -4,7 +4,7 @@ name: Release
 #   git tag v0.0.3 && git push origin v0.0.3
 #
 # It builds the erosqnative firmware and publishes it as
-# rockbox-h2-vX.Y.Z.zip on the release for that tag, creating the release if
+# rockbox-vX.Y.Z.zip on the release for that tag, creating the release if
 # the tag has no release yet. The release description comes from
 # docs/releases/<tag>.md, one notes file per tag (see docs/RELEASE_NOTES.md);
 # if that file does not exist at the tag, a generic description is used, and a
@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   firmware:
-    name: Build firmware and publish rockbox-h2-<tag>.zip
+    name: Build firmware and publish rockbox-<tag>.zip
     runs-on: ubuntu-24.04
     timeout-minutes: 90
 
@@ -45,7 +45,7 @@ jobs:
             *) tag="v${tag}" ;;
           esac
           echo "TAG=${tag}" >> "$GITHUB_ENV"
-          echo "ASSET=rockbox-h2-${tag}.zip" >> "$GITHUB_ENV"
+          echo "ASSET=rockbox-${tag}.zip" >> "$GITHUB_ENV"
 
       # Every tag carries its own notes: docs/releases/<tag>.md. Checked before
       # the build, so a missing file shows up in the log instead of after the
@@ -59,7 +59,7 @@ jobs:
             head -3 release-notes.md
           else
             echo "No $notes at ${TAG}; publishing a generic description."
-            printf '# H2 Rockbox %s\n\nAutomatic build of `%s` by the Release\nworkflow. Unzip to the root of the SD card (it contains `.rockbox/`).\nBluetooth needs hardware revision 4 (hw4).\n' \
+            printf '# Rockbox %s\n\nAutomatic build of `%s` by the Release\nworkflow. Unzip to the root of the SD card (it contains `.rockbox/`).\nBluetooth needs hardware revision 4 (hw4).\n' \
               "$TAG" "$TAG" > release-notes.md
           fi
 
@@ -126,7 +126,7 @@ jobs:
           echo "entries under .rockbox: $(unzip -l build/rockbox.zip | grep -c '.rockbox/')"
           unzip -l build/rockbox.zip | grep -E "rockbox\.elf|\.fnt"
 
-      - name: Name the archive rockbox-h2-vX.Y.Z.zip
+      - name: Name the archive rockbox-vX.Y.Z.zip
         run: |
           mv build/rockbox.zip "$ASSET"
           ls -l "$ASSET"
@@ -153,7 +153,7 @@ jobs:
                 echo "Keeping the hand-written description of $TAG"
             fi
           else
-            gh release create "$TAG" --title "H2 Rockbox ${TAG}" $prerelease \
+            gh release create "$TAG" --title "Rockbox Tiny5 ${TAG}" $prerelease \
                 --notes-file release-notes.md
             echo "Created release $TAG from docs/releases/${TAG}.md"
           fi
