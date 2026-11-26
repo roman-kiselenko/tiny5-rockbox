@@ -4,7 +4,9 @@
 #           wheel fwd|back <ticks> | shot <name> | quit
 # Buttons: power menu back play prev next volup voldown
 
-wait 6000          # boot: the logo holds 3 s, then the 1 s zoom animation
+wait 3000          # the boot logo, held before the zoom
+shot splash
+wait 3000          # ... and the zoom animation finishes
 shot home
 
 wheel fwd 5        # Music, Cover Flow, Files, Playlists, Bluetooth -> Settings

@@ -17501,6 +17501,62 @@
   </voice>
 </phrase>
 <phrase>
+  id: LANG_NEWUI_DB_TOTAL
+  desc: new UI: Home's bottom line, the size of the music database
+  user: core
+  <source>
+    *: "%d tracks · %s"
+  </source>
+  <dest>
+    *: "%d tracks · %s"
+  </dest>
+  <voice>
+    *: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEWUI_DB_ONE
+  desc: new UI: Home's bottom line, the music database with one track
+  user: core
+  <source>
+    *: "%d track · %s"
+  </source>
+  <dest>
+    *: "%d track · %s"
+  </dest>
+  <voice>
+    *: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEWUI_DB_UNREADY
+  desc: new UI: Home's bottom line while the database is still being built
+  user: core
+  <source>
+    *: "Music database not ready yet"
+  </source>
+  <dest>
+    *: "Music database not ready yet"
+  </dest>
+  <voice>
+    *: none
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEWUI_DB_EMPTY
+  desc: new UI: Home's bottom line when the database holds nothing
+  user: core
+  <source>
+    *: "No music in the database"
+  </source>
+  <dest>
+    *: "No music in the database"
+  </dest>
+  <voice>
+    *: none
+  </voice>
+</phrase>
+<phrase>
   id: LANG_NEWUI_COVERFLOW
   desc: new UI: Home entry that opens Cover Flow (albums as covers)
   user: core

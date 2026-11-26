@@ -202,8 +202,8 @@ static void header_row(int y, int value_w, const char *label, const char *value)
     ui_fill_rect(left, y + 2, right + 2 - left, HDR_ROW_H - 4, UI_COL_BG);
     ui_text_vcenter(UI_MARGIN, y, HDR_ROW_H, ui_font(UI_FONT_BODY),
                     UI_COL_TEXT2, label, label_r - UI_MARGIN, 1);
-    ui_text_vcenter(UI_MARGIN, y, HDR_ROW_H, ui_font(UI_FONT_TITLE),
-                    UI_COL_TEXT, value, right - UI_MARGIN, 1);
+    ui_text_num_vcenter(UI_MARGIN, y, HDR_ROW_H, ui_font(UI_FONT_TITLE),
+                        UI_COL_TEXT, value, right - UI_MARGIN, 1);
 }
 
 /* now: how long since the last charge, and the level */
@@ -223,8 +223,8 @@ static void header_text(struct header *h)
         snprintf(h->since, sizeof(h->since), "%dm", mins);
     snprintf(h->level, sizeof(h->level), "%d%%", MAX(pct, 0));
     const int title = ui_font(UI_FONT_TITLE);
-    h->value_w = MAX(ui_text_width(title, h->since),
-                     ui_text_width(title, h->level));
+    h->value_w = MAX(ui_text_num_width(title, h->since),
+                     ui_text_num_width(title, h->level));
 }
 
 /* where the header's text starts (its left edge) */
@@ -314,8 +314,8 @@ static void draw(struct viewport *vp)
         for (int x = CH_X0; x < CH_X1; x += 6)
             ui_fill_rect(x, y, 3, 1, UI_COL_TRACK);
         snprintf(buf, sizeof(buf), "%d", g * 25);
-        ui_text(0, y - font_get(small)->height / 2, small, UI_COL_MUTED, buf,
-                CH_X0 - 6, 1);
+        ui_text_num(0, y - font_get(small)->height / 2, small, UI_COL_MUTED,
+                    buf, CH_X0 - 6, 1);
     }
 
     if (npts == 0)
@@ -327,9 +327,9 @@ static void draw(struct viewport *vp)
         {
             int x = CH_X0 + pw * g / ticks;
             snprintf(buf, sizeof(buf), "%dh", h0 + g * step);
-            int w = ui_text_width(small, buf);
-            ui_text(g == 0 ? x : g == ticks ? x - w : x - w / 2, CH_Y1 + 6,
-                    small, UI_COL_MUTED, buf, 0, -1);
+            int w = ui_text_num_width(small, buf);
+            ui_text_num(g == 0 ? x : g == ticks ? x - w : x - w / 2, CH_Y1 + 6,
+                        small, UI_COL_MUTED, buf, 0, -1);
         }
 
         /* the curve, from the first reading to the latest: a gradient fill

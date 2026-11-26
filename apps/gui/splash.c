@@ -32,7 +32,7 @@
 
 /* Splashes are the new UI's pop-up panel (PLAN.md §4.8): bold text,
  * centred and word wrapped, on a rounded panel over the current screen;
- * splash_progress adds a bar under the text.
+ * splash_progress adds a flat bar under the text.
  *
  * '\n' and '\t' break lines; '\f' first resets the panel's size (it does
  * not shrink while one activity shows splashes, so a shorter text does
@@ -101,11 +101,10 @@ static void splash_draw(const char *fmt, va_list ap, int progress)
     {
         int bw = w - 2 * UI_POPUP_PAD, by = y + h - PANEL_VPAD - BAR_H;
         int fill = bw * MIN(progress, 1000) / 1000;
-        ui_fill_round_rect(x + UI_POPUP_PAD, by, bw, BAR_H, BAR_H / 2,
-                           UI_COL_TRACK);
+        /* the track and its fill are flat bands, like every other bar */
+        ui_fill_rect(x + UI_POPUP_PAD, by, bw, BAR_H, UI_COL_TRACK);
         if (fill > 0)
-            ui_fill_round_rect(x + UI_POPUP_PAD, by, MAX(fill, BAR_H), BAR_H,
-                               BAR_H / 2, UI_COL_FILL);
+            ui_fill_rect(x + UI_POPUP_PAD, by, fill, BAR_H, UI_COL_FILL);
     }
     lcd_update_viewport();
     lcd_set_viewport(last);

@@ -1,0 +1,21 @@
+# Screenshots for docs/screens (see ci/screens.sh and docs/DEVELOPING.md).
+# Two palettes, the two screens the README shows: Home, then Now Playing with a
+# real track and its cover. Commands:
+# wait <ms> | press <button> | hold <button> <ms> | wheel fwd|back <ticks> |
+# shot <name> | quit   (uisimulator/common/sim_script.c)
+# The palette comes from simdisk/.rockbox/config.cfg ("theme: nord").
+
+wait 4000            # the boot splash fades in and holds, then Home is up
+shot home
+
+wheel fwd 2          # Files
+wait 600
+press play           # music/
+wait 800
+press play           # album2/
+wait 800
+press play           # track2.mp3 -> playback starts, Now Playing is up
+wait 4000            # give the cover time to decode and the bar to move
+shot now-playing
+
+quit

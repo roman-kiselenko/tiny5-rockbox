@@ -14,8 +14,13 @@ separated by colour only, the way a terminal does it.
 
 ## Screens
 
+- **Boot**: the Rockbox icon, cut from the logo's outline, fades in over 2 s in
+  the bottom-left corner at half the screen height, the firmware version in the
+  row above it; it holds a second before the first screen.
 - **Home** is the root screen: Now Playing (or resume), Music (the tag
-  database), Cover Flow, Files, Playlists, Bluetooth, Settings, System.
+  database), Cover Flow, Files, Playlists, Bluetooth, Settings, System. Along
+  the bottom edge, in grey, the music database: its number of tracks and their
+  total playing time, or a note that it is not built yet.
 - **Cover Flow**: albums as covers in a row, the centre one facing you and the
   others turned towards it with a reflection, animated by the wheel. Centre
   opens the album; a song starts the album from it. Music keeps playing while
@@ -23,10 +28,12 @@ separated by colour only, the way a terminal does it.
 - **Album art in lists**: rows with covers are two lines (name plus artist or
   album). Covers are decoded once and kept as pre-scaled thumbnails in
   `.rockbox/newui/thumbs`, with a small RAM cache — JPEG decoding on the fly is
-  too slow on the X1000.
-- **Now Playing**: the track as text (title, artist, album, "3 of 12 · shuffle",
-  codec + bitrate + sample rate), the cover in the corner, and one progress
-  line at the bottom. Changing the volume shows a volume band in place of the
+  too slow on the X1000. Where an album has no cover, the row and Cover Flow
+  show the Rockbox clef on a recessed square.
+- **Now Playing**: the cover centred at the top, the track as text (title,
+  artist, album, "3 of 12 · shuffle", codec + bitrate + sample rate), and one
+  progress line at the bottom. An album with no cover keeps that square and
+  shows the clef in it. Changing the volume shows a volume band in place of the
   progress for a moment. Press Centre twice (or hold it) to scrub with the
   wheel.
 - **Scrolling**: the wheel speeds up as you spin it, and a large letter shows
@@ -52,7 +59,7 @@ separated by colour only, the way a terminal does it.
 
 ## Fonts and languages
 
-The whole UI is **Tiny5 Mono** (9 px tall, SIL OFL 1.1) —
+The UI is **Tiny5 Mono** (9 px tall, SIL OFL 1.1) —
 [Gissio/font_Tiny5Mono](https://github.com/Gissio/font_Tiny5Mono) — so a row is
 16 px and the readout screens fit the panel. It carries Latin, Greek, Cyrillic
 and IPA, so Russian and other Cyrillic text display, using Rockbox's normal
@@ -61,6 +68,14 @@ everything in Noto Sans CJK, the UI font before the switch to Tiny5.)
 
 The face is committed as `.fnt` (`fonts/newui/08-Tiny5Mono.fnt`, converted from
 `08-Tiny5Mono.bdf` with `convbdf`), so a normal build needs no FreeType.
+
+**Times and counts use seven-segment numerals.** The `UI_FONT_NUM` slot is
+**Digital-7** (`fonts/newui/09-Digital7.fnt`, 9 px tall, 6 px advance, digits
+`0-9`, `:` and `-` only), and `ui_text_num()` draws runs of those characters
+with it while everything around them stays Tiny5: the status bar clock and
+battery number, Now Playing's elapsed and remaining times, Cover Flow's track
+lengths, the lock-screen clock. Both faces are 9 px on the same baseline, so a
+mixed string like `37%` needs no special alignment.
 
 **CJK is not supported yet.** The Noto Sans CJK JP faces (14/18/20/22/40 px,
 SIL OFL 1.1) from an earlier iteration of the UI are no longer in the tree —

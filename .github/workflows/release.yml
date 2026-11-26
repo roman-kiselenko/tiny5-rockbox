@@ -1,12 +1,14 @@
 name: Release
 
 # Runs when a version tag is pushed:
-#   git tag v0.0.1 && git push origin v0.0.1
+#   git tag v0.0.3 && git push origin v0.0.3
 #
 # It builds the erosqnative firmware and publishes it as
 # rockbox-h2-vX.Y.Z.zip on the release for that tag, creating the release if
-# the tag has no release yet. If you made the release by hand with your own
-# description, the workflow just uploads the archive to it.
+# the tag has no release yet. The release description comes from
+# docs/releases/<tag>.md, one notes file per tag (see docs/RELEASE_NOTES.md);
+# if that file does not exist at the tag, a generic description is used, and a
+# release you wrote by hand is left alone.
 
 on:
   push:
@@ -16,9 +18,9 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Release tag to build, e.g. v0.0.1"
+        description: "Release tag to build, e.g. v0.0.3"
         required: true
-        default: "v0.0.1"
+        default: "v0.0.3"
 
 permissions:
   contents: write
@@ -44,6 +46,22 @@ jobs:
           esac
           echo "TAG=${tag}" >> "$GITHUB_ENV"
           echo "ASSET=rockbox-h2-${tag}.zip" >> "$GITHUB_ENV"
+
+      # Every tag carries its own notes: docs/releases/<tag>.md. Checked before
+      # the build, so a missing file shows up in the log instead of after the
+      # release is published.
+      - name: Release notes for this tag
+        run: |
+          notes="docs/releases/${TAG}.md"
+          if [ -f "$notes" ]; then
+            cp "$notes" release-notes.md
+            echo "Release description: $notes ($(wc -l < release-notes.md) lines)"
+            head -3 release-notes.md
+          else
+            echo "No $notes at ${TAG}; publishing a generic description."
+            printf '# H2 Rockbox %s\n\nAutomatic build of `%s` by the Release\nworkflow. Unzip to the root of the SD card (it contains `.rockbox/`).\nBluetooth needs hardware revision 4 (hw4).\n' \
+              "$TAG" "$TAG" > release-notes.md
+          fi
 
       - name: Install build dependencies
         run: |
@@ -95,14 +113,18 @@ jobs:
           mkdir -p build
           cd build
           ../tools/configure --target=erosqnative --type=n
-          make -j"$(nproc)"
+          # VERSION makes tools/version.sh report the tag instead of the
+          # rNNNNNNNNNN-YYMMDD string a normal build gets, so the firmware
+          # says v0.0.3 rather than its commit.
+          VERSION="$TAG" make -j"$(nproc)"
           make zip
+          grep RBVERSION rbversion.h
 
       - name: Check the archive
         run: |
           unzip -l build/rockbox.zip | head -20
           echo "entries under .rockbox: $(unzip -l build/rockbox.zip | grep -c '.rockbox/')"
-          unzip -l build/rockbox.zip | grep -E "rockbox\.elf|08-Tiny5Mono\.fnt"
+          unzip -l build/rockbox.zip | grep -E "rockbox\.elf|\.fnt"
 
       - name: Name the archive rockbox-h2-vX.Y.Z.zip
         run: |
@@ -110,22 +132,30 @@ jobs:
           ls -l "$ASSET"
           sha256sum "$ASSET" | tee sha256sum.txt
 
-      - name: Create the release if the tag has none
+      - name: Create or update the release
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
+          prerelease=""
+          case "$TAG" in
+            *-*) prerelease="--prerelease" ;;
+          esac
+
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists; only the archive is uploaded."
-          else
-            notes="Automatic build of \`${TAG}\` by the Release workflow. Unzip to the root of the SD card (it contains \`.rockbox/\`). Bluetooth needs hardware revision 4 (hw4)."
-            if [ -f docs/RELEASE_NOTES.md ]; then
-              notes="$(cat docs/RELEASE_NOTES.md)"
+            echo "Release $TAG already exists."
+            body="$(gh release view "$TAG" --json body -q .body)"
+            # Only overwrite text this workflow wrote, or an empty body: a
+            # description typed by hand stays untouched.
+            if [ -z "$body" ] || printf '%s' "$body" | head -1 | grep -q "Automatic build of"; then
+                gh release edit "$TAG" --notes-file release-notes.md
+                echo "Description updated from docs/releases/${TAG}.md"
+            else
+                echo "Keeping the hand-written description of $TAG"
             fi
-            prerelease=""
-            case "$TAG" in
-              *-*) prerelease="--prerelease" ;;
-            esac
-            gh release create "$TAG" --title "H2 Rockbox ${TAG}" $prerelease --notes "$notes"
+          else
+            gh release create "$TAG" --title "H2 Rockbox ${TAG}" $prerelease \
+                --notes-file release-notes.md
+            echo "Created release $TAG from docs/releases/${TAG}.md"
           fi
 
       - name: Upload the archive

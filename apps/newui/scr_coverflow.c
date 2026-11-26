@@ -343,23 +343,8 @@ static void make_placeholder(void)
     made = true;
     made_bg = bg;
     made_fg = fg;
-    for (int i = 0; i < UI_COVER * UI_COVER; i++)
-        placeholder[i] = bg;
-    /* a quaver, as ui_art_placeholder draws it */
-    const int u = UI_COVER / 16, c = UI_COVER / 2;
-    const int hx = c - 3 * u, hy = c + 2 * u;
-    for (int y = 0; y < UI_COVER; y++)
-        for (int x = 0; x < UI_COVER; x++)
-        {
-            int dx = 2 * (x - hx) - 4 * u, dy = 2 * (y - hy) - 3 * u;
-            bool head = dx * dx * 9 + dy * dy * 16 <= 36 * u * u * 4;
-            bool stem = x >= hx + 3 * u && x < hx + 4 * u &&
-                        y >= c - 4 * u && y < c + 3 * u;
-            bool flag = x >= hx + 3 * u && x < hx + 6 * u &&
-                        y >= c - 4 * u && y < c - 3 * u;
-            if (head || stem || flag)
-                placeholder[y * UI_COVER + x] = fg;
-        }
+    /* the Rockbox clef, as in ui_art_placeholder */
+    ui_clef_fill(placeholder, UI_COVER, UI_COL_PH_BG, UI_COL_PH_FG);
 }
 
 /* RGB565 pixel mixed toward the background: a/256 of it is kept (darker
@@ -685,12 +670,12 @@ static void draw_song_panel(struct viewport *vp, int a, int sel, int first)
         unsigned c = selected ? ui_sel_text() : UI_COL_TEXT;
         int sec = tracks[i].length / 1000;
         snprintf(len, sizeof(len), "%d:%02d", sec / 60, sec % 60);
-        int lw = ui_text_width(row, len);
+        int lw = ui_text_num_width(row, len);
         if (selected)
             ui_selection(SL_X, y, SL_W, SL_ROW_H);
         ui_text_vcenter(SL_X + SL_PAD, y, SL_ROW_H, row, c,
                         track_text + tracks[i].title, tw - lw - UI_GAP, -1);
-        ui_text_vcenter(SL_X + SL_PAD, y, SL_ROW_H, row, c, len, tw, 1);
+        ui_text_num_vcenter(SL_X + SL_PAD, y, SL_ROW_H, row, c, len, tw, 1);
     }
     lcd_update_viewport_rect(0, SL_TOP, vp->width, vp->height - SL_TOP);
     lcd_set_viewport(last);

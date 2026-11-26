@@ -138,10 +138,10 @@ static int draw_icons(int x, int font, const struct ui_status *st)
 static void draw_battery(int x_right, int w, const char *text, int percent,
                          bool charging)
 {
-    ui_text_vcenter(x_right - w, 0, UI_STATUS_H, ui_font(UI_FONT_SMALL),
-                    percent >= 0 && percent <= BATT_LOW && !charging ?
-                        ui_red() : UI_COL_STATUS,
-                    text, 0, -1);
+    ui_text_num_vcenter(x_right - w, 0, UI_STATUS_H, ui_font(UI_FONT_SMALL),
+                        percent >= 0 && percent <= BATT_LOW && !charging ?
+                            ui_red() : UI_COL_STATUS,
+                        text, 0, -1);
 }
 
 /* fills buf and returns its width; "--%" when there is no reading */
@@ -153,7 +153,7 @@ static int battery_text(char *buf, size_t size, const struct ui_status *st)
         snprintf(buf, size, "%d%%", st->battery > 100 ? 100 : st->battery);
     if (st->charging)
         strcat(buf, "+");
-    return ui_text_width(ui_font(UI_FONT_SMALL), buf);
+    return ui_text_num_width(ui_font(UI_FONT_SMALL), buf);
 }
 
 /* the time, "14:41" or "2:41 PM"; 0 when the clock is off */
@@ -168,7 +168,7 @@ static int clock_text(char *buf, size_t size, const struct ui_status *st)
     else
         snprintf(buf, size, "%d:%02d %s",
                  (h % 12) ? h % 12 : 12, m, h < 12 ? "AM" : "PM");
-    return ui_text_width(ui_font(UI_FONT_SMALL), buf);
+    return ui_text_num_width(ui_font(UI_FONT_SMALL), buf);
 }
 
 void ui_status_draw(const struct ui_status *st)
@@ -211,8 +211,8 @@ void ui_status_draw(const struct ui_status *st)
         if (icons)
             draw_icons(right - block, font, st);
         if (clock_w)
-            ui_text_vcenter(cx, 0, UI_STATUS_H, font, UI_COL_STATUS, clock, 0,
-                            -1);
+            ui_text_num_vcenter(cx, 0, UI_STATUS_H, font, UI_COL_STATUS, clock,
+                                0, -1);
         ui_text_vcenter(UI_MARGIN, 0, UI_STATUS_H, ui_font(UI_FONT_BODY),
                         UI_COL_STATUS, st->title, MAX(0, cx - ICON_GAP - UI_MARGIN),
                         -1);
@@ -224,8 +224,8 @@ void ui_status_draw(const struct ui_status *st)
             draw_icons(UI_MARGIN, font, st);
 
         if (clock_w)
-            ui_text_vcenter((vp->width - clock_w) / 2, 0, UI_STATUS_H, font,
-                            UI_COL_STATUS, clock, 0, -1);
+            ui_text_num_vcenter((vp->width - clock_w) / 2, 0, UI_STATUS_H, font,
+                                UI_COL_STATUS, clock, 0, -1);
 
         if (batt_w)
             draw_battery(vp->width - UI_MARGIN, batt_w, batt, st->battery,

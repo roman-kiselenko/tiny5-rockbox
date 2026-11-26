@@ -21,6 +21,7 @@
 #include "system.h"
 
 #include "version.h"
+#include "rbversion.h"
 #include "gcc_extensions.h"
 #include "storage.h"
 #include "disk.h"
@@ -181,100 +182,79 @@ int main(void)
     root_menu();
 }
 
-static long logo_tick; /* when the boot image was first shown */
+static long logo_tick; /* when the splash started to fade in */
 
-/* The disk isn't ready at boot, rblogo is stored in bin and erased after boot */
+/* The splash is the Rockbox icon, cut from the logo's outline (see
+ * ui_mark.c): half the screen height, in the bottom-left corner, with the
+ * firmware version in the row above it. */
+#define SPLASH_SIZE (MIN(LCD_WIDTH, LCD_HEIGHT) / 2) /* the icon is square */
+#define SPLASH_X    UI_MARGIN
+#define SPLASH_Y    (LCD_HEIGHT - UI_MARGIN - SPLASH_SIZE)
+#define SPLASH_VER  (SPLASH_Y - UI_ROW_H)            /* the row above it */
+#define SPLASH_FADE (2 * HZ)                        /* the fade lasts 2 s */
+#define SPLASH_HOLD HZ                             /* ... then it holds 1 s */
+
+/* The splash at opacity alpha, 0..256: the page colour, the mark, the
+ * version. Nothing else is on screen while booting, so the whole page is
+ * repainted on every frame of the fade. */
+static void splash_draw(int alpha) INIT_ATTR;
+static void splash_draw(int alpha)
+{
+    if (alpha > 256)
+        alpha = 256;
+    lcd_set_viewport(NULL);
+    ui_fill_rect(0, 0, LCD_WIDTH, LCD_HEIGHT, UI_COL_BG);
+    ui_logo_draw(SPLASH_X, SPLASH_Y, SPLASH_SIZE, alpha);
+    /* the version fades with the mark */
+    ui_text(SPLASH_X, SPLASH_VER, UI_FONT_ROW,
+            ui_mix(UI_COL_BG, UI_COL_TEXT, alpha),
+            "Rockbox " RBVERSION, LCD_WIDTH - 2 * UI_MARGIN, -1);
+    lcd_update();
+}
+
+/* Where the fade is now: opacity 0 to 1 in 2 s, easing in — the square of the
+ * elapsed fraction, the shape of a CSS ease-in; full opacity when the
+ * animation is switched off. */
+static int splash_alpha(void) INIT_ATTR;
+static int splash_alpha(void)
+{
+    long t = current_tick - logo_tick;
+    if (t >= SPLASH_FADE || global_settings.skip_startup_anim)
+        return 256;
+    int u = (int)(t * 1024 / SPLASH_FADE);   /* 0..1024 */
+    return u * u / 4096;                     /* (t/dur)^2, 0..256 */
+}
+
 int show_logo_boot( void ) INIT_ATTR;
 int show_logo_boot( void )
 {
     if (!logo_tick)
         logo_tick = current_tick | 1;
-    /* new UI: the full-screen boot image only, no status bar or text */
-    lcd_bmp(&bm_rockboxlogo, (LCD_WIDTH - BMPWIDTH_rockboxlogo) / 2,
-            (LCD_HEIGHT - BMPHEIGHT_rockboxlogo) / 2);
-    lcd_update();
+    splash_draw(splash_alpha());
     return 0;
 }
 
-/* RGB565 spread out so that one multiply blends all three channels:
- * 0b00000gggggg00000rrrrr000000bbbbb */
-#define SPREAD(c) (((c) | ((uint32_t)(c) << 16)) & 0x07e0f81f)
-#define UNSPREAD(v) ((fb_data)(((v) & 0xf81f) | (((v) >> 16) & 0x07e0)))
-/* a + (b - a) * w / 32, w = 0..32, on spread pixels */
-#define LERP(a, b, w) ((((a) * (32 - (w)) + (b) * (w)) >> 5) & 0x07e0f81f)
-
-/* The boot image stays up for 3 s in all, then zooms in on its centre
- * (up to 2x: the central quarter fills the screen) for 1 s while
- * blending into the theme's background colour (black or white), which
- * the first screen is then drawn on. Settings > General > Startup/Shutdown
- * > Skip Startup Animation goes to the first screen once init is done. Bilinear filtering, eased
- * zoom, timed by the tick so it lasts 1 s at any frame rate. */
+/* The fade started with the first logo at the beginning of init; drive it to
+ * the end, 50 frames a second, hold it long enough to read, and leave it for
+ * the first screen. Settings > General > Startup/Shutdown > Skip Startup
+ * Animation shows it at full opacity and skips the hold. Timed by the tick,
+ * so the fade lasts 2 s at any frame rate. */
 static void boot_anim(void) INIT_ATTR;
 static void boot_anim(void)
 {
-    const int dur = HZ;
-    const int w = BMPWIDTH_rockboxlogo, h = BMPHEIGHT_rockboxlogo;
-    const fb_data *src = (const fb_data *)bm_rockboxlogo.data;
-    static short col_x[LCD_WIDTH];
-    static unsigned char col_w[LCD_WIDTH];
-    const uint32_t bg = SPREAD(UI_COL_BG);
-    long start;
-
-    if (global_settings.skip_startup_anim || w != LCD_WIDTH || h != LCD_HEIGHT)
-        return;
-    show_logo_boot(); /* a splash may have covered it */
-    lcd_set_viewport(NULL);
-    /* the boot image holds for 3 s in all */
-    if (TIME_BEFORE(current_tick, logo_tick + 3*HZ))
-        sleep(logo_tick + 3*HZ - current_tick);
-
-    start = current_tick;
-    for (;;)
+    if (global_settings.skip_startup_anim)
     {
-        int t = current_tick - start; /* 0..dur */
-        if (t > dur)
-            t = dur;
-        /* ease in-out (smoothstep), p = 0..1024 */
-        int u = t * 1024 / dur;
-        int p = (u * u / 1024) * (3072 - 2 * u) / 1024;
-        /* zoom 1x..2x: the shown source window shrinks from w to w/2;
-         * step is the source distance between screen pixels, 16.16 */
-        int32_t step = 65536 - p * 32;
-        int32_t x0 = (w << 15) - step * (LCD_WIDTH / 2);
-        int32_t y0 = (h << 15) - step * (LCD_HEIGHT / 2);
-        /* share of the background colour, 0..32, eased like the zoom */
-        int mix = p * 32 / 1024;
-
-        for (int x = 0; x < LCD_WIDTH; x++)
-        {
-            int32_t sx = x0 + step * x;
-            col_x[x] = sx >> 16;
-            col_w[x] = (sx >> 11) & 31;
-            if (col_x[x] > w - 2) /* the last column */
-                col_x[x] = w - 2, col_w[x] = 32;
-        }
-        for (int y = 0; y < LCD_HEIGHT; y++)
-        {
-            int32_t sy = y0 + step * y;
-            int ry = sy >> 16, wy = (sy >> 11) & 31;
-            if (ry > h - 2) /* the last row */
-                ry = h - 2, wy = 32;
-            const fb_data *r0 = src + ry * w, *r1 = r0 + w;
-            fb_data *dst = FBADDR(0, y);
-            for (int x = 0; x < LCD_WIDTH; x++)
-            {
-                int cx = col_x[x], wx = col_w[x];
-                uint32_t a = LERP(SPREAD(r0[cx]), SPREAD(r0[cx + 1]), wx);
-                uint32_t b = LERP(SPREAD(r1[cx]), SPREAD(r1[cx + 1]), wx);
-                uint32_t v = LERP(a, b, wy);
-                dst[x] = UNSPREAD(LERP(v, bg, mix));
-            }
-        }
-        lcd_update();
-        if (t >= dur)
-            break;
-        yield();
+        show_logo_boot();
+        return;
     }
+
+    while (TIME_BEFORE(current_tick, logo_tick + SPLASH_FADE))
+    {
+        show_logo_boot();
+        sleep(HZ / 20);
+    }
+    show_logo_boot(); /* solid, and a moment to read it */
+    sleep(SPLASH_HOLD);
 }
 
 #ifdef HAVE_DIRCACHE

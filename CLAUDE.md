@@ -45,10 +45,13 @@ Other build types still supported: `--type=w` (warble codec test tool),
 MIPS (also broken upstream).
 
 The UI's font is committed as `.fnt` (`fonts/newui/08-Tiny5Mono.fnt`, from
-`08-Tiny5Mono.bdf` via `convbdf`), so a normal build needs no FreeType. The
-Noto CJK faces are not committed; `make -C tools convttf` (needs
-libfreetype-dev) plus `fonts/newui/mkfonts.sh` generates them when a CJK build
-is started.
+`08-Tiny5Mono.bdf` via `convbdf`), so a normal build needs no FreeType. Times
+and counts use a second committed face, `fonts/newui/09-Digital7.fnt` (Digital-7,
+seven-segment, 208 bytes), generated from `digital-7-mono.ttf` by the stdlib-only
+`tools/ttf2bdf.py` and then `convbdf`; `ui_text_num()` in `apps/newui/ui_draw.c`
+picks it for runs of `0-9`, `:` and `-`. The Noto CJK faces are not committed;
+`make -C tools convttf` (needs libfreetype-dev) plus `fonts/newui/mkfonts.sh`
+generates them when a CJK build is started.
 
 Simulator keys: arrows = scroll wheel / prev / next, Enter = play/select,
 Backspace = back, Insert = menu, PgUp/PgDn = volume, Esc = power.
@@ -57,7 +60,8 @@ Install on the player: unzip `rockbox.zip` to the SD card root (it contains
 `.rockbox/`). The owner's card keeps settings and Bluetooth pairings in
 `.rockbox/` (`config.cfg`, `bt_config.conf`, `bt_devices.txt`): unzip over the
 existing folder (`unzip -o`) and check those files are unchanged. The archive
-is ~2.6 MB: firmware, codecs and Tiny5 Mono (452 KB). An older install still
+is ~2.6 MB: firmware, codecs, Tiny5 Mono (452 KB) and the Digital-7 numerals
+(208 B). An older install still
 has `.rockbox/fonts/newui-*.fnt` on the card (the Noto CJK faces, 27 MB) — they
 are no longer installed and can be deleted.
 
@@ -67,11 +71,11 @@ A change is good when the fresh builds pass: firmware, simulator, warble
 (plus a logf build for debug-path changes). `../newui-tools/check.sh` is the
 commit gate (firmware zip + simulator install, no new warnings);
 `../newui-tools/simrun.sh <script> <shotdir>` runs the simulator headless from
-a key script and writes screenshots (see `uisimulator/common/sim_script.c`) —
-that is how `docs/screens/` is produced, and every screen is checked there
-before it goes on the device; `../newui-tools/loc.py [commit]` counts code
-lines. For pure cleanups, `mipsel-elf-size rockbox.elf` and the `.codec` sizes
-must be unchanged. Only the version string may differ. When running the script
+a key script and writes screenshots (see `uisimulator/common/sim_script.c`),
+and every screen is checked there before it goes on the device; `ci/screens.sh`
+(+ `ci/screens.script`, `ci/scaleimg.py`) regenerates `docs/screens/` — Home and
+Now Playing, dark and light, upscaled 4×; `THEMES` for other palettes; `../newui-tools/loc.py [commit]` counts code lines. For pure cleanups,
+`mipsel-elf-size rockbox.elf` and the `.codec` sizes must be unchanged. Only the version string may differ. When running the script
 runner by hand, create the shot directory first: `RB_SHOTDIR` is written to
 with host `fopen`, and the sim just prints "cannot write" if it is missing.
 
@@ -153,8 +157,10 @@ Usage (`apps/newui/scr_battery.c`).
 Pushing a tag `vX.Y.Z` (or running it from the Actions tab with a tag input)
 triggers `.github/workflows/release.yml`: it builds `--type=n`, renames
 `rockbox.zip` to **`rockbox-h2-vX.Y.Z.zip`**, and uploads it to the tag's
-release, creating the release if the tag has none. Put the release text in
-`docs/RELEASE_NOTES.md` and it is used as the release description.
+release, creating the release if the tag has none. **Each tag has its own notes
+file**, `docs/releases/<tag>.md`, which becomes that release's description;
+`docs/RELEASE_NOTES.md` indexes them. Write the notes before the tag (the
+workflow checks out the tag). The next release is **v0.0.3**.
 `.github/workflows/ci.yml` builds firmware + simulator + warble on every push
 to `master`; the simulator smoke test is `ci/smoke.script`, and its screenshots
 are uploaded as the `sim-screenshots` artifact.
@@ -180,9 +186,10 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
 3. **Font: Tiny5 Mono** (9 px, SIL OFL 1.1,
    https://github.com/Gissio/font_Tiny5Mono) for every UI slot; rows are 16 px,
    art rows 48 px, two-line rows 24 px, status bar 22 px. Latin, Greek,
-   Cyrillic and IPA only.
-4. **CJK is deferred, not dropped.** Tiny5 Mono is the only UI font and the
-   only font installed. `fonts/newui/mkfonts.sh` (with `tools/convttf`) is kept
+   Cyrillic and IPA only. `UI_FONT_NUM` is the exception: Digital-7 seven-segment
+   numerals, digits/`:`/`-` only, for times and counts.
+4. **CJK is deferred, not dropped.** Tiny5 Mono and the Digital-7 numerals are
+   the only fonts installed. `fonts/newui/mkfonts.sh` (with `tools/convttf`) is kept
    as the seed for a Chinese/Japanese/Korean build; the Noto faces themselves are
    no longer in the tree.
 5. **Cover Flow over the music database.**
@@ -200,6 +207,16 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
      stripes of MCU rows — at most `JPEG_PROG_MAX_PASSES` (4) passes over the
      file. Covers too big for that buffer fail with -13 and show the
      placeholder.
+   - The "no art" mark is the **Rockbox clef**, not a bitmap:
+     `tools/svg2poly.py` flattens `docs/logo/rockbox-clef.svg` into the
+     committed `apps/newui/clef_geometry.h`, and `apps/newui/ui_mark.c`
+     (`ui_clef_draw`, `ui_clef_fill`) fills it even-odd, anti-aliased by
+     sampling each pixel row on four sub-scanlines, with the coverage cached
+     per size so list rows redraw cheaply. The same file draws the boot
+     splash from `docs/logo/rockbox-icon.svg` (`logo_geometry.h`,
+     `ui_logo_draw`): the icon at half the screen height in the bottom-left
+     corner, faded in over 2 s with the firmware version above it — the 230 KB
+     boot bitmap is gone.
    - Decoding JPEGs while scrolling is too slow on the X1000: covers are
      decoded once and saved pre-scaled on the card
      (`/.rockbox/newui/thumbs`, 48 px for list rows = `UI_THUMB`, 150 px for
@@ -214,7 +231,14 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
    `newui_style` (classic accent band / minimal band), `newui_clock`. The
    accent is derived from the theme, there is no accent setting. Plus
    `skip_startup_anim`.
-7. Everything is built and checked in the simulator at 320×240 before the
+7. **Home carries the collection.** Along its bottom edge, in the theme's
+   secondary grey, the tag database's size: `1246 tracks · 41 h 12 min`. The
+   total of `tag_length` is summed once and cached in `apps/newui/scr_home.c`,
+   keyed on the database's entry count, scan progress and commit step, and Home
+   redraws the line when it changes; while the database is committing the line
+   says so instead. Pop-up progress bars are flat bands, not pills, and the
+   yes/no rows use the same flat selection band as every list.
+8. Everything is built and checked in the simulator at 320×240 before the
    device, driven by the scroll wheel.
 
 ## Where the UI code lives
@@ -228,6 +252,8 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
   - drawing and behaviour: `ui_draw.c` (rects, gradients, rounded corners,
     alpha, text with ellipsis, the drill chevron), `ui_style.c` (themes,
     selection styles, accents), `ui_font.c`, `ui_art.c` (current album cover),
+    `ui_mark.c` (the Rockbox clef, the mark of an album with no cover, and the
+    boot icon),
     `ui_thumb.c` (cached covers), `ui_wheel.c` (wheel ramp, fast-scroll letter),
     `ui_transition.c` (slide between list levels), `ui_time.c` (µs frame timer)
 - `apps/root_menu.c`: screen switching under Home and the start screen;

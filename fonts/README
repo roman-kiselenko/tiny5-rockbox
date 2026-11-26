@@ -38,3 +38,28 @@ Fonts put here need to follow a few rules:
 4. Fonts should be carefully selected, judging quality over quantity. A font
    that only covers ASCII isn't worth much. Rockbox supports a lot of
    languages.
+
+
+The fonts this tree uses
+------------------------
+
+`fonts/newui/` holds the two faces the UI draws with, both committed as `.fnt`
+so a build needs no conversion:
+
+| file | what it is | source |
+|---|---|---|
+| `08-Tiny5Mono.fnt` | every UI slot, 9 px, Latin/Greek/Cyrillic/IPA | `08-Tiny5Mono.bdf` (SIL OFL 1.1) |
+| `09-Digital7.fnt` | the digits, `:` and `-` of times and counts, 9 px | `digital-7-mono.ttf` (see `LICENSE-Digital7.txt`) |
+
+Both `.fnt` files come from their `.bdf` through `tools/convbdf`. The Digital-7
+`.bdf` is rasterised from the TTF with `tools/ttf2bdf.py`, which needs nothing
+but Python 3:
+
+```bash
+python3 tools/ttf2bdf.py -c '0123456789:-' -p 9 -W 6 -A 9 -D 0 \
+    -o fonts/newui/09-Digital7.bdf fonts/newui/digital-7-mono.ttf
+convbdf -f fonts/newui/09-Digital7.bdf
+```
+
+The Noto CJK faces are not here; `fonts/newui/mkfonts.sh` plus `tools/convttf`
+generates them if a Chinese/Japanese/Korean build is ever wanted.

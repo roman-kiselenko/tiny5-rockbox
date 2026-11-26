@@ -17,6 +17,9 @@ makes a single-target player small enough to fit the H2.
   `backdrops/`, bitmap fonts other than the UI font and the system font, and
   playback's album-art buffering for themes. Now Playing's logic still lives in
   `apps/gui/wps.c`; its drawing is `apps/newui/scr_np.c`.
+- **The boot bitmap.** `apps/bitmaps/native/rockboxlogo.320x240x16.bmp` is gone;
+  the splash is drawn from `docs/logo/rockbox-icon.svg` by `ui_mark.c`, which
+  saves 150 KB of the binary.
 - **Voice.** Spoken menus are gone: `apps/talk.h` and `apps/voice_thread.h` are
   inline no-op stubs; the call sites remain until each screen is rewritten.
 - **Codecs.** Game music (SID, NSF, SPC, SAP/ASAP, AY, VTX, GBS, HES, SGC, VGM,
