@@ -50,10 +50,11 @@ THEMES="nord gotham" ../ci/screens.sh   # a one-off look
 
 It shoots the two screens the README shows — Home, then Now Playing after the
 script plays a track through the file browser — for every palette in `THEMES`,
-then `ci/scale2x.py` doubles the 320×240 shots to the 640×480 the docs use,
-writing `docs/screens/<palette>/home.png` and `now-playing.png`. The palette is
-set in `simdisk/.rockbox/config.cfg`, so trying another needs no change to the
-script.
+then `ci/scaleimg.py` upscales the 320×240 shots 4× to 1280×960 — the UI font is
+9 px, and at native size the text is unreadable in the docs — writing
+`docs/screens/<palette>/home.png` and `now-playing.png`. `SCALE=2 ../ci/screens.sh`
+keeps the raw double. The palette is set in `simdisk/.rockbox/config.cfg`, so
+trying another needs no change to the script.
 
 The test library decides how good the shots look. Now Playing needs a cover the
 decoders can read: an embedded JPEG in the MP3, or `cover.jpg` / `cover.jpeg` /

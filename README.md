@@ -65,7 +65,7 @@ the Digital-7 numerals (208 B).
 
 Captured headlessly by the simulator over a test library with scripted button
 presses — `ci/screens.script`, run by `ci/screens.sh` — 320×240 screens stored
-at 2× (640×480), one folder per palette in
+at 4× (1280×960), one folder per palette in
 [docs/screens](docs/screens); how to make them is in
 [docs/DEVELOPING.md](docs/DEVELOPING.md). Only the two screens that show the
 design are kept, Home and Now Playing, in a dark palette and a light one; the

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Nearest-neighbour x2 upscale of the simulator's 320x240 PNG shots.
+"""Nearest-neighbour upscale of the simulator's 320x240 PNG shots.
 
-Usage: ./ci/scale2x.py <srcdir> <dstdir>
+Usage: ./ci/scale2x.py <srcdir> <dstdir> [factor]
 
-Pure stdlib: the simulator writes plain RGB PNGs and the docs want them at
-640x480, so no image library is needed. Each pixel becomes a 2x2 block; the
-LCD is 16 bpp, so doubling is exact (no interpolation to invent).
+Pure stdlib: the simulator writes plain RGB PNGs and the docs want them bigger
+than 320x240 so the 9 px UI font is readable. Each pixel becomes a
+factor x factor block; the LCD is 16 bpp, so the upscale is exact (no
+interpolation to invent). Default factor 2.
 """
 import os
 import struct
@@ -62,7 +63,10 @@ def write_png(path, w, h, rgb):
     for y in range(h):
         raw.append(0)
         raw += rgb[y * w * 3:(y + 1) * w * 3]
-    ihdr = struct.pack(">IIBB", w, h, 8, 2)
+    # IHDR is 13 bytes: width, height, bit depth, colour type, compression,
+    # filter method, interlace. The last three were missing here, which made
+    # the PNGs fail strict decoders.
+    ihdr = struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)
 
     def chunk(kind, body):
         return (struct.pack(">I", len(body)) + kind + body
@@ -75,28 +79,29 @@ def write_png(path, w, h, rgb):
         f.write(chunk(b"IEND", b""))
 
 
-def scale2x(src, dst):
+def scale_img(src, dst, factor):
     w, h, px = read_png(src)
     out = bytearray()
     for y in range(h):
         base = y * w * 3
-        row = bytearray(w * 6)
+        row = bytearray(w * 3 * factor)
         for x in range(w):
             r, g, b = px[base + 3 * x:base + 3 * x + 3]
-            row[6 * x:6 * x + 6] = bytes((r, g, b, r, g, b))
-        out += row + row
-    write_png(dst, w * 2, h * 2, out)
+            row[x * 3 * factor:(x + 1) * 3 * factor] = bytes((r, g, b)) * factor
+        out += row * factor
+    write_png(dst, w * factor, h * factor, out)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
+    if len(sys.argv) not in (3, 4):
         print(__doc__)
         sys.exit(1)
     src, dst = sys.argv[1], sys.argv[2]
+    factor = int(sys.argv[3]) if len(sys.argv) > 3 else 2
     os.makedirs(dst, exist_ok=True)
     n = 0
     for name in sorted(os.listdir(src)):
         if name.endswith(".png"):
-            scale2x(os.path.join(src, name), os.path.join(dst, name))
+            scale_img(os.path.join(src, name), os.path.join(dst, name), factor)
             n += 1
-    print("wrote %d 2x screenshots to %s" % (n, dst))
+    print("wrote %d %dx screenshots to %s" % (n, factor, dst))

@@ -16,6 +16,9 @@ SIM=${SIM:-./rockboxui}
 # Two palettes are kept in the docs: one dark, one light. Override for a
 # one-off look, e.g. THEMES="nord gotham" ./ci/screens.sh
 THEMES=${THEMES:-"dark light"}
+# The UI font is 9 px; at 4x its glyphs are 36 px tall, big enough to read in
+# the README. Set SCALE=2 for the raw double.
+SCALE=${SCALE:-4}
 
 # The shots are only meaningful with a test library: at least one album whose
 # cover decodes (cover.{jpg,jpeg,bmp} next to the track, or an embedded JPEG) so
@@ -34,6 +37,6 @@ for theme in $THEMES; do
         RB_SCRIPT="$SRC/ci/screens.script" \
         RB_SHOTDIR="./shots/$theme" \
         timeout 120 "$SIM" >/dev/null
-    python3 "$SRC/ci/scale2x.py" "shots/$theme" "$SRC/docs/screens/$theme"
+    python3 "$SRC/ci/scaleimg.py" "shots/$theme" "$SRC/docs/screens/$theme" "$SCALE"
     echo "$SRC/docs/screens/$theme: $(ls "$SRC/docs/screens/$theme" | wc -l) shots"
 done
