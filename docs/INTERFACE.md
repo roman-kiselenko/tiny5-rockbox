@@ -14,8 +14,13 @@ separated by colour only, the way a terminal does it.
 
 ## Screens
 
+- **Boot**: the Rockbox icon, cut from the logo's outline, fades in over 2 s in
+  the bottom-left corner at half the screen height, the firmware version in the
+  row above it; it holds a second before the first screen.
 - **Home** is the root screen: Now Playing (or resume), Music (the tag
-  database), Cover Flow, Files, Playlists, Bluetooth, Settings, System.
+  database), Cover Flow, Files, Playlists, Bluetooth, Settings, System. Along
+  the bottom edge, in grey, the music database: its number of tracks and their
+  total playing time, or a note that it is not built yet.
 - **Cover Flow**: albums as covers in a row, the centre one facing you and the
   others turned towards it with a reflection, animated by the wheel. Centre
   opens the album; a song starts the album from it. Music keeps playing while
@@ -23,10 +28,12 @@ separated by colour only, the way a terminal does it.
 - **Album art in lists**: rows with covers are two lines (name plus artist or
   album). Covers are decoded once and kept as pre-scaled thumbnails in
   `.rockbox/newui/thumbs`, with a small RAM cache — JPEG decoding on the fly is
-  too slow on the X1000.
-- **Now Playing**: the track as text (title, artist, album, "3 of 12 · shuffle",
-  codec + bitrate + sample rate), the cover in the corner, and one progress
-  line at the bottom. Changing the volume shows a volume band in place of the
+  too slow on the X1000. Where an album has no cover, the row and Cover Flow
+  show the Rockbox clef on a recessed square.
+- **Now Playing**: the cover centred at the top, the track as text (title,
+  artist, album, "3 of 12 · shuffle", codec + bitrate + sample rate), and one
+  progress line at the bottom. An album with no cover keeps that square and
+  shows the clef in it. Changing the volume shows a volume band in place of the
   progress for a moment. Press Centre twice (or hold it) to scrub with the
   wheel.
 - **Scrolling**: the wheel speeds up as you spin it, and a large letter shows

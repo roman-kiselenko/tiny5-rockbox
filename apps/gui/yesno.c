@@ -100,7 +100,7 @@ static void gui_yesno_draw(struct gui_yesno *yn)
             label = buf;
         }
         if (i == yn->sel)
-            ui_fill_round_rect(x + 8, ry, w - 16, UI_ROW_H, 6, ui_sel_bg());
+            ui_selection(x + 8, ry, w - 16, UI_ROW_H);
         ui_text_vcenter(x + UI_POPUP_PAD, ry, UI_ROW_H, font,
                         i == yn->sel ? ui_sel_text() : UI_COL_TEXT2, label, tw, -1);
     }

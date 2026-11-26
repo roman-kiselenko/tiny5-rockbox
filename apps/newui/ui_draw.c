@@ -42,6 +42,13 @@ static inline unsigned blend565(unsigned dst, unsigned src, int alpha)
                        db + (((sb - db) * alpha) >> 8));
 }
 
+/* `color` at alpha 0..256 over `bg`, both RGB565: what a faded pixel looks
+ * like, without touching the screen */
+unsigned ui_mix(unsigned bg, unsigned color, int alpha)
+{
+    return blend565(bg, color, alpha);
+}
+
 void ui_blend_pixel(int x, int y, unsigned color, int alpha)
 {
     struct viewport *vp = lcd_current_viewport;

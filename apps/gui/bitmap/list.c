@@ -86,27 +86,29 @@ static bool item_drills(enum themable_icons icon)
 }
 
 /* A row with the name and a grey second line, as on the iPod, and
- * optionally a cover on the left: the cover is square and fills the row at
- * the left edge, the selection starts after it, and a hairline runs under
- * the text, so the covers down the left touch. Only the selected row shows
- * its chevron. */
+ * optionally a cover on the left: the cover is square and fills the row, the
+ * selection starts after it, and a hairline runs under the text, so the
+ * covers down the left touch. Only the selected row shows its chevron.
+ * art_x is where the cover square starts: 0 when the list has a column of
+ * covers down the edge, UI_MARGIN when the cover is a one-off header - the
+ * context menu - so it lines up with the text of the rows under it. */
 static void draw_art_row(struct viewport *vp, int y, int row_h,
-                         const char *name, char *line2, bool cover,
+                         const char *name, char *line2, bool cover, int art_x,
                          const fb_data *thumb, bool selected, bool drills,
                          int text_right, bool scrollbar)
 {
     drills = drills && selected;
-    const int ax = cover ? UI_THUMB : 0;
-    const int tx = cover ? UI_THUMB + 10 : UI_MARGIN;
+    const int ax = cover ? art_x + UI_THUMB : 0;
+    const int tx = cover ? art_x + UI_THUMB + 10 : UI_MARGIN;
     const int tw = text_right - tx - (drills ? CHEVRON_SPACE : 0);
 
     if (selected)
         ui_selection(ax, y, vp->width - ax -
                      (scrollbar ? SCROLLBAR_W + 3 : 0), row_h);
     if (cover && thumb)
-        lcd_bitmap(thumb, 0, y, UI_THUMB, UI_THUMB);
+        lcd_bitmap(thumb, art_x, y, UI_THUMB, UI_THUMB);
     else if (cover)
-        ui_art_placeholder(0, y, UI_THUMB, 0);
+        ui_art_placeholder(art_x, y, UI_THUMB, 0);
 
     int row = ui_font(UI_FONT_ROW), body = ui_font(UI_FONT_BODY);
     if (line2[0])
@@ -142,8 +144,11 @@ static void draw_title(struct screen *display, struct gui_synclist *list,
     if (list->callback_get_header &&
         list->callback_get_header(list->data, &thumb, line2, sizeof(line2)))
     {
-        draw_art_row(vp, 0, row_h, list->title, line2, true, thumb, false,
-                     false, vp->width - UI_MARGIN, false);
+        /* a cover in the title row keeps the edge column when the rows below
+         * have covers of their own, otherwise it sits at the text margin */
+        const int art_x = list->callback_get_art_row ? 0 : UI_MARGIN;
+        draw_art_row(vp, 0, row_h, list->title, line2, true, art_x, thumb,
+                     false, false, vp->width - UI_MARGIN, false);
         return;
     }
     ui_text_vcenter(UI_MARGIN, 0, row_h, ui_font(UI_FONT_TITLE), UI_COL_TEXT,
@@ -230,7 +235,7 @@ void list_draw(struct screen *display, struct gui_synclist *list)
             }
             if (selected)
                 strmemccpy(sel_name, name, sizeof(sel_name));
-            draw_art_row(vp, y, row_h, name, line2, list->art_cover, thumb,
+            draw_art_row(vp, y, row_h, name, line2, list->art_cover, 0, thumb,
                          selected, drills, text_right, scrollbar);
             continue;
         }

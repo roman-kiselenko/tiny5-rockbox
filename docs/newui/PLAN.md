@@ -228,12 +228,22 @@ The start screen: full-width rows, `UI_ROW_H`, same pitch as every other list.
 │ Bluetooth                            › │
 │ Settings                             › │
 │ System                               › │
+│                                        │
+│ 1246 tracks · 41 h 12 min            │   the database, stuck to the bottom
 └────────────────────────────────────────┘
 ```
 
-Back on Home returns to the first row. Boot: the H2 boot image holds for 3 s,
-then zooms to 2× while blending into the theme background (Settings › General ›
-Startup/Shutdown › Skip Startup Animation to skip it).
+Along the bottom edge, in the theme's secondary grey, the music database: how
+many tracks it holds and their total playing time (`1246 tracks · 41 h 12 min`,
+the numbers in the seven-segment face). The total is summed from the database
+once and cached, rescanned when the database is rescanned or rebuilt, and Home
+refreshes the line as a build finishes. While the database is not searchable the
+ready yet [3/12]`), and when it holds nothing, `No music in the database`.
+
+Back on Home returns to the first row. Boot: the Rockbox icon fades in over 2 s
+(§4.4) into the bottom-left corner with the firmware version above it, holds a
+second, and the first screen is then drawn (Settings › General ›
+Startup/Shutdown › Skip Startup Animation to skip the fade).
 
 ### 4.3 Music (library)
 
@@ -272,6 +282,22 @@ perspective texture mapping, a reflection under them, album and artist below.
 - Covers are decoded once and saved on the card in `.rockbox/newui/thumbs` as
   raw native pixels: 150 px for Cover Flow, 48 px (`UI_THUMB`) for list rows,
   plus a 1-byte "no art" marker. RAM cache: 24 thumbnails and 16 covers.
+- An album with no cover is marked with the **Rockbox clef**. Its outline comes
+  from the logo: `tools/svg2poly.py` flattens `docs/logo/rockbox-clef.svg` to
+  polygons (200 points in four rings, normalised into a 1024 box) and commits
+  them as `apps/newui/clef_geometry.h`; `ui_mark.c` fills them even-odd, the
+  glyph taking 75% of the square and centred on its own bounding box, anti-
+  aliased by sampling each pixel row on four sub-scanlines, and keeps the
+  coverage per size so a list of rows without art redraws cheaply. It replaces
+  the hand-drawn quaver; no bitmap is shipped. A cover in a list's *title* row
+  sits in the edge column when the rows below have covers of their own (the
+  album page), and at the text margin when they do not (the context menu).
+- The same rasteriser draws the **boot splash**: `docs/logo/rockbox-icon.svg`
+  becomes `apps/newui/logo_geometry.h` (9 painted paths, 17 rings, 570 points,
+  each path with its own fill - black, yellow, the grey-blue rock). At half the
+  screen height (120 px) it sits in the bottom-left corner and fades in,
+  opacity 0 to 1 easing over 2 s; the firmware version is the row above it.
+  The 230 KB boot bitmap is gone.
 - Missing covers are built in the background while nothing moves, the visible
   ones first, then outwards from the centre. While the covers are moving only a
   couple are read per frame (one while music plays), and all this work pauses
@@ -299,10 +325,10 @@ band at the bottom.
 └────────────────────────────────────────┘
 ```
 
-Every line is centred, and so is the cover. An album with no art gets no
-placeholder: the text block simply floats in the middle of the space above the
-band. The band stays full width - the times at either end make it the screen's
-ruler.
+Every line is centred, and so is the cover. An album with no art keeps the
+cover's square, marked with the Rockbox clef, so the readout sits in the same
+place either way. The band stays full width - the times at either end make it
+the screen's ruler.
 
 - Changing the volume replaces the band with a volume readout for 1.5 s.
 - Scrubbing (Centre twice, or held): the band becomes the scrub bar with a 4 px
@@ -315,7 +341,8 @@ ruler.
 A dimmed screen and a rounded panel (radius 12, 16 px padding). Yes/no and
 short choice lists (up to six options) are drawn as rows inside the panel;
 longer lists fall back to a full-screen list. Text is word-wrapped to the panel
-width.
+width. The progress bar under a splash — the one the disk and database scans
+show — is a flat 6 px band of track with the fill over it, no pill ends.
 
 ### 4.7 Settings
 
@@ -343,7 +370,7 @@ gone — Bluetooth is a Home item.
 | Lock screen | Power locks the keys and blanks the display from any screen; the lock screen shows the clock, the date and the playing track as text, centred. Power or double-press Centre unlocks |
 | Text entry | Wheel-driven character strip, text in a field at the top |
 | USB connected | Full-width status bar, USB glyph, "Connected", battery |
-| Boot / shutdown | H2 boot image with the zoom animation / "Goodbye" |
+| Boot / shutdown | The Rockbox icon, code-drawn from the logo, faded in bottom-left with the version / "Goodbye" |
 | Splash, yes/no, database progress | The rounded panel of §4.6 |
 
 ---

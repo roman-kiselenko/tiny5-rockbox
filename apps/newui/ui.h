@@ -150,6 +150,9 @@ int ui_resolve_font(int font);
 /* --- drawing (ui_draw.c); coordinates relative to the current viewport --- */
 
 void ui_blend_pixel(int x, int y, unsigned color, int alpha); /* alpha 0..256 */
+/* `color` at alpha 0..256 over `bg`, both RGB565, as a colour rather than a
+ * screen pixel */
+unsigned ui_mix(unsigned bg, unsigned color, int alpha);
 void ui_fill_rect(int x, int y, int w, int h, unsigned color);
 void ui_fill_round_rect(int x, int y, int w, int h, int r, unsigned color);
 /* filled with a vertical gradient from top to bottom */
@@ -253,7 +256,7 @@ void ui_art_draw(const struct bitmap *bm, int x, int y, int size, int radius);
  * with a reflection refl_h tall below it starting at refl_a/256 */
 void ui_art_draw_tilted(const struct bitmap *bm, int x, int y, int w,
                         int hl, int hr, int refl_h, int refl_a);
-/* The no-art placeholder: a dark rounded square with a note */
+/* The no-art placeholder: a rounded square with the Rockbox clef */
 void ui_art_placeholder(int x, int y, int size, int radius);
 struct mp3entry;
 /* Decodes id3's cover into out (size x size, centred on black); invalidates
@@ -291,6 +294,17 @@ bool ui_cover_saved(const char *track_path);
 /* Decodes the cover (slow) and saves it, and its list thumbnail, on the
  * card, without touching the covers in RAM */
 void ui_cover_build(const char *track_path);
+
+/* --- the marks from the logo (ui_mark.c) --- */
+
+/* The Rockbox clef, from the logo, centred in the size x size square at x,y
+ * and blended over what is already drawn. */
+void ui_clef_draw(int x, int y, int size, unsigned color);
+/* The same into a size x size native-pixel buffer, over bg */
+void ui_clef_fill(fb_data *dst, int size, unsigned bg, unsigned color);
+/* The Rockbox icon, size px across, its top-left corner at x,y, painted over
+ * what is already there at alpha 0..256: the boot splash, faded in */
+void ui_logo_draw(int x, int y, int size, int alpha);
 
 /* --- screens --- */
 

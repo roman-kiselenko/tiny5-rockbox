@@ -134,6 +134,12 @@ static void page_shapes(void)
     y += 74;
     ui_fill_rect(UI_MARGIN, y, LCD_WIDTH - 2 * UI_MARGIN, 4, UI_COL_TRACK);
     ui_fill_rect(UI_MARGIN, y, 110, 4, UI_COL_SEL);
+
+    /* the mark of an album without a cover */
+    y += 12;
+    ui_art_placeholder(UI_MARGIN, y, UI_THUMB, 4);
+    ui_text_vcenter(UI_MARGIN + UI_THUMB + 8, y, UI_THUMB, f, UI_COL_MUTED,
+                    "No album art", LCD_WIDTH - 2 * UI_MARGIN - UI_THUMB - 8, -1);
 }
 
 static void page_status(void)

@@ -33,9 +33,10 @@
  *   ──────────────────────────────────
  *   0:15 ███████-------------   -6:05
  *
- * The cover and every readout line are centred; an album with no art gets
- * no cover and the text floats in the middle of the space instead. The
- * times stay at the ends of the band - it is the screen's ruler.
+ * The cover and every readout line are centred; an album with no art keeps
+ * the cover's square with the Rockbox clef in it, so the text sits in the
+ * same place either way. The times stay at the ends of the band - it is the
+ * screen's ruler.
  *
  * When the volume changes, the band shows it for a moment instead of the
  * progress. */
@@ -181,8 +182,8 @@ static int info_lines(const struct mp3entry *id3, char *buf, int size)
     return n;
 }
 
-/* The cover size that fits above the readout; 0 when it would be too small
- * to be worth decoding. */
+/* The cover size that fits above the readout; the caller drops the cover
+ * square entirely when that comes out below NP_ART_MIN. */
 static int cover_size(int lines)
 {
     int room = NPL_BAND_Y - NP_TOP_PAD - NP_ART_GAP - NP_BAND_PAD
@@ -269,15 +270,22 @@ void ui_np_draw(bool full)
         char scratch[64];
         int lines = info_lines(id3, scratch, sizeof scratch);
         int size = cover_size(lines);
-        const struct bitmap *art = size >= NP_ART_MIN ? ui_art_current(size)
-                                                     : NULL;
-        /* the cover on top, the text under it; with no art the text takes
-         * the middle of the space above the band */
-        int y = art ? NP_TOP_PAD + size + NP_ART_GAP
-                    : NP_TOP_PAD + (NPL_BAND_Y - NP_TOP_PAD
-                                   - lines * NP_LINE_H) / 2;
-        if (art)
-            ui_art_draw(art, (vp.width - size) / 2, NP_TOP_PAD, size, 0);
+        /* Below NP_ART_MIN there is no room for a cover at all and the
+         * readout takes the middle of the space; otherwise the square is
+         * always there, with the clef in it when the album has no art. */
+        bool room = size >= NP_ART_MIN;
+        const struct bitmap *art = room ? ui_art_current(size) : NULL;
+        int x = (vp.width - size) / 2;
+        int y = room ? NP_TOP_PAD + size + NP_ART_GAP
+                     : NP_TOP_PAD + (NPL_BAND_Y - NP_TOP_PAD
+                                     - lines * NP_LINE_H) / 2;
+        if (room)
+        {
+            if (art)
+                ui_art_draw(art, x, NP_TOP_PAD, size, 0);
+            else
+                ui_art_placeholder(x, NP_TOP_PAD, size, 0);
+        }
         draw_info(&vp, id3, buf, sizeof buf, y);
     }
     if (overlay)

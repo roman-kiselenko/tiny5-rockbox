@@ -207,6 +207,16 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
      stripes of MCU rows — at most `JPEG_PROG_MAX_PASSES` (4) passes over the
      file. Covers too big for that buffer fail with -13 and show the
      placeholder.
+   - The "no art" mark is the **Rockbox clef**, not a bitmap:
+     `tools/svg2poly.py` flattens `docs/logo/rockbox-clef.svg` into the
+     committed `apps/newui/clef_geometry.h`, and `apps/newui/ui_mark.c`
+     (`ui_clef_draw`, `ui_clef_fill`) fills it even-odd, anti-aliased by
+     sampling each pixel row on four sub-scanlines, with the coverage cached
+     per size so list rows redraw cheaply. The same file draws the boot
+     splash from `docs/logo/rockbox-icon.svg` (`logo_geometry.h`,
+     `ui_logo_draw`): the icon at half the screen height in the bottom-left
+     corner, faded in over 2 s with the firmware version above it — the 230 KB
+     boot bitmap is gone.
    - Decoding JPEGs while scrolling is too slow on the X1000: covers are
      decoded once and saved pre-scaled on the card
      (`/.rockbox/newui/thumbs`, 48 px for list rows = `UI_THUMB`, 150 px for
@@ -221,7 +231,14 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
    `newui_style` (classic accent band / minimal band), `newui_clock`. The
    accent is derived from the theme, there is no accent setting. Plus
    `skip_startup_anim`.
-7. Everything is built and checked in the simulator at 320×240 before the
+7. **Home carries the collection.** Along its bottom edge, in the theme's
+   secondary grey, the tag database's size: `1246 tracks · 41 h 12 min`. The
+   total of `tag_length` is summed once and cached in `apps/newui/scr_home.c`,
+   keyed on the database's entry count, scan progress and commit step, and Home
+   redraws the line when it changes; while the database is committing the line
+   says so instead. Pop-up progress bars are flat bands, not pills, and the
+   yes/no rows use the same flat selection band as every list.
+8. Everything is built and checked in the simulator at 320×240 before the
    device, driven by the scroll wheel.
 
 ## Where the UI code lives
@@ -235,6 +252,8 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
   - drawing and behaviour: `ui_draw.c` (rects, gradients, rounded corners,
     alpha, text with ellipsis, the drill chevron), `ui_style.c` (themes,
     selection styles, accents), `ui_font.c`, `ui_art.c` (current album cover),
+    `ui_mark.c` (the Rockbox clef, the mark of an album with no cover, and the
+    boot icon),
     `ui_thumb.c` (cached covers), `ui_wheel.c` (wheel ramp, fast-scroll letter),
     `ui_transition.c` (slide between list levels), `ui_time.c` (µs frame timer)
 - `apps/root_menu.c`: screen switching under Home and the start screen;

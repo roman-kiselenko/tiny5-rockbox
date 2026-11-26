@@ -4,7 +4,9 @@
 # shot <name> | quit   (uisimulator/common/sim_script.c)
 # The theme comes from simdisk/.rockbox/config.cfg ("theme: nord").
 
-wait 6000             # boot: the logo holds 3 s, then the 1 s zoom animation
+wait 2500             # the splash, faded in and holding
+shot splash
+wait 1500             # ... the hold ends, Home is up
 shot home
 
 press play            # resume playback -> Now Playing

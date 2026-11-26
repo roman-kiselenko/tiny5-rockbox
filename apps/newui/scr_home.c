@@ -20,7 +20,8 @@
 
 /* Home (PLAN.md §4.2): the menu list, plain - one row per screen, left
  * aligned at the margin, the chosen row in inverse video. No banner, no
- * numbering, no cover art: covers live in Cover Flow.
+ * numbering, no cover art: covers live in Cover Flow. Along the bottom edge
+ * a grey readout of the music database (tracks and total playing time).
  *
  * Wheel/Prev/Next move (wrapping), Centre opens, Back returns to the first
  * row, holding Back opens Now Playing. */
@@ -38,6 +39,9 @@
 #include "settings.h"
 #include "viewport.h"
 #include "ui.h"
+#ifdef HAVE_TAGCACHE
+#include "tagcache.h"
+#endif
 #ifdef HAVE_BLUETOOTH
 #include "menus/exported_menus.h"
 #endif
@@ -117,6 +121,131 @@ static const char *item_label(enum home_target t)
     return str(items[t].lang_id);
 }
 
+#ifdef HAVE_TAGCACHE
+/* The music database's readout, stuck to the bottom of Home: how many tracks
+ * the database holds and how long they play, in grey. The total is summed in
+ * one pass over the tag cache and cached; the pass runs again only when the
+ * database has been scanned or rebuilt, so spinning the wheel costs nothing.
+ * While the database is still building the line says so, and Home refreshes
+ * it as the build finishes. */
+static long long db_total_ms;             /* tag_length summed over the entries */
+static int db_tracks = 0;                 /* how many entries that total covers */
+static unsigned long db_scanned_key = 0;  /* state the total was computed for */
+static long db_scanned_tick = 0;
+static bool db_scanned = false;
+static char db_text[64];                  /* the line as Home last drew it */
+
+/* Anything that moves when the database is scanned or rebuilt. total_entries
+ * alone is not enough: it is only refreshed when the master header is read, so
+ * a rebuild that has not been opened yet would leave it at its old value. */
+static unsigned long db_key(const struct tagcache_stat *stat)
+{
+    return (unsigned long)stat->total_entries * 4096
+         + (unsigned long)stat->processed_entries * 64
+         + (unsigned long)stat->commit_step;
+}
+
+static void db_scan(const struct tagcache_stat *stat)
+{
+    struct tagcache_search tcs;
+    /* as wide as Cover Flow's: a path longer than the buffer makes the
+     * search give up, and the count would come back short */
+    char path[MAX_PATH];
+    long long total = 0;
+    int n = 0;
+
+    if (!tagcache_search(&tcs, tag_filename))
+        return;
+    while (tagcache_get_next(&tcs, path, sizeof path))
+    {
+        long len = tagcache_get_numeric(&tcs, tag_length);
+        if (len > 0)
+            total += len;
+        n++;
+    }
+    tagcache_search_finish(&tcs);
+
+    db_total_ms = total;
+    db_tracks = n;
+    db_scanned_key = db_key(stat);
+    db_scanned_tick = current_tick;
+    db_scanned = true;
+}
+
+/* "42 min", "12 h 34 min", "3 d 12 h" */
+static void fmt_hours(char *buf, size_t len, long long ms)
+{
+    long long min = ms / 60000;
+
+    if (min < 60)
+        snprintf(buf, len, "%lld min", min);
+    else if (min < 24 * 60)
+        snprintf(buf, len, "%lld h %02lld min", min / 60, min % 60);
+    else
+        snprintf(buf, len, "%lld d %lld h", min / 1440, (min / 60) % 24);
+}
+
+/* Usable means searchable: a database committing its indices is not. */
+static bool db_ready(const struct tagcache_stat *stat)
+{
+    return tagcache_is_usable() && stat->commit_step == 0;
+}
+
+static void db_readout(char *text, size_t len)
+{
+    struct tagcache_stat *stat = tagcache_get_stat();
+    char time[32];
+
+    if (!db_ready(stat))
+    {
+        int step = stat->commit_step, max = tagcache_get_max_commit_step();
+        if (step > 0 && max > step)
+            snprintf(text, len, "%s [%d/%d]", str(LANG_NEWUI_DB_UNREADY),
+                     step, max);
+        else
+            snprintf(text, len, "%s", str(LANG_NEWUI_DB_UNREADY));
+        return;
+    }
+
+    if (!db_scanned ||
+        (db_key(stat) != db_scanned_key &&
+         /* the database moved; a full pass is not cheap, so while it is
+           scanning do not repeat it more than once every few seconds */
+         TIME_AFTER(current_tick, db_scanned_tick + 5 * HZ)))
+        db_scan(stat);
+
+    if (db_tracks <= 0)
+        snprintf(text, len, "%s", str(LANG_NEWUI_DB_EMPTY));
+    else
+    {
+        fmt_hours(time, sizeof time, db_total_ms);
+        snprintf(text, len,
+                 db_tracks == 1 ? str(LANG_NEWUI_DB_ONE)
+                                : str(LANG_NEWUI_DB_TOTAL),
+                 db_tracks, time);
+    }
+}
+
+static void db_line(struct viewport *vp, int rows_bottom)
+{
+    db_readout(db_text, sizeof db_text);
+
+    if (rows_bottom <= vp->height - UI_ROW_H)
+        ui_text_num_vcenter(UI_MARGIN, vp->height - UI_ROW_H, UI_ROW_H,
+                            ui_font(UI_FONT_ROW), UI_COL_TEXT2, db_text,
+                            vp->width - 2 * UI_MARGIN, -1);
+}
+
+/* Should Home redraw because the readout changed under it? */
+static bool db_readout_changed(void)
+{
+    char text[sizeof db_text];
+
+    db_readout(text, sizeof text);
+    return strcmp(text, db_text) != 0;
+}
+#endif /* HAVE_TAGCACHE */
+
 static void draw(struct viewport *vp, const enum home_target *list, int n,
                  int sel)
 {
@@ -137,6 +266,10 @@ static void draw(struct viewport *vp, const enum home_target *list, int n,
                         item_label(list[i]), text_w, -1);
         y += HOME_ROW_H;
     }
+
+#ifdef HAVE_TAGCACHE
+    db_line(vp, y);
+#endif
 
     lcd_set_viewport(vp);
 
@@ -240,9 +373,14 @@ int ui_home(int *selected)
             case ACTION_NONE:
                 /* the status bar redraws itself; redraw Home when the
                    track or the play state changed (Now Playing appears
-                   and goes away, the battery, the clock) */
+                   and goes away, the battery, the clock), or when the
+                   database finished building behind the scenes */
                 if (state_changed())
                     redraw = true;
+#ifdef HAVE_TAGCACHE
+                else if (db_readout_changed())
+                    redraw = true;
+#endif
                 break;
             default:
                 if (default_event_handler(action) == SYS_USB_CONNECTED)

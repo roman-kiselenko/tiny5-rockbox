@@ -89,6 +89,26 @@ python3 tools/ttf2bdf.py -c '0123456789:-' -p 9 -W 6 -A 9 -D 0 \
 Both are committed, so a build needs no conversion step. The name is the glyph
 height in pixels, per the rules in [fonts/README](../fonts/README).
 
+## Marks from the logo
+
+The clef that stands for an album with no cover and the boot splash are drawn,
+not blitted. `tools/svg2poly.py` (stdlib only, like `ttf2bdf.py`) flattens the
+SVG paths in `docs/logo` into polygons, normalises them into a 1024 box and
+prints the geometry the tree ships:
+
+```bash
+python3 tools/svg2poly.py docs/logo/rockbox-clef.svg --paths path24 \
+    > apps/newui/clef_geometry.h
+python3 tools/svg2poly.py docs/logo/rockbox-icon.svg \
+    > apps/newui/logo_geometry.h
+python3 tools/svg2poly.py docs/logo/rockbox-icon.svg --preview 80   # check it
+```
+
+`apps/newui/ui_mark.c` fills each path even-odd (a ring inside another is a
+hole), paths in the order the drawing has them, sampling every pixel row on
+four sub-scanlines for anti-aliasing. Regenerating a header is a one-command
+change; no screen code is touched.
+
 ## The commit gate
 
 A change is good when the fresh builds pass — firmware, simulator and warble —

@@ -26,7 +26,7 @@
 #include "metadata.h"
 
 /* External bitmaps */
-#include "bitmaps/rockboxlogo.h"
+
 #endif /* !(PLUGIN || __PCTOOL__) */
 
 struct cbmp_bitmap_info_entry /* */
