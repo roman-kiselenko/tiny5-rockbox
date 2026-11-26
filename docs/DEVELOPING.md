@@ -44,19 +44,28 @@ Backspace = back, Insert = menu, PgUp/PgDn = volume, Esc = power.
 `ci/screens.sh` regenerates them. From the simulator build directory:
 
 ```bash
-../ci/screens.sh          # one run per theme
+../ci/screens.sh                # dark and light
+THEMES="nord gotham" ../ci/screens.sh   # a one-off look
 ```
 
-It walks every screen with `ci/screens.script` (Home, Now Playing three ways,
-Cover Flow, the file browser, Settings and a submenu, the System menu, System
-Status, Battery Usage), then `ci/scale2x.py` doubles the 320×240 shots to the
-640×480 the docs use, writing `docs/screens/<theme>/`. The theme is set in
-`simdisk/.rockbox/config.cfg`, so adding a palette needs no change to the
+It shoots the two screens the README shows — Home, then Now Playing after the
+script plays a track through the file browser — for every palette in `THEMES`,
+then `ci/scale2x.py` doubles the 320×240 shots to the 640×480 the docs use,
+writing `docs/screens/<palette>/home.png` and `now-playing.png`. The palette is
+set in `simdisk/.rockbox/config.cfg`, so trying another needs no change to the
 script.
 
-The lock screen is not in the set: entering it needs a key press while the keys
-are locked, and the press that wakes the screen also ends it, so a headless run
-never catches it displayed.
+The test library decides how good the shots look. Now Playing needs a cover the
+decoders can read: an embedded JPEG in the MP3, or `cover.jpg` / `cover.jpeg` /
+`cover.bmp` next to the track. Rockbox has no PNG decoder, so an album whose ID3
+`APIC` is a PNG gets the clef placeholder instead of art — useful for testing the
+placeholder, useless for a screenshot. `ci/screens.sh` refuses to run with no
+music in `simdisk/music`.
+
+Nothing else is shot on purpose: the remaining screens are the same rows drawn
+by the same widget, and the lock screen cannot be caught headlessly anyway —
+entering it needs a key press while the keys are locked, and the press that
+wakes the screen also ends it.
 
 Settings in `simdisk/.rockbox/config.cfg` are read exactly as on the player,
 by their config names: `theme: nord`, `selection style: minimal`.

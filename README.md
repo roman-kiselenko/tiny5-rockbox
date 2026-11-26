@@ -65,29 +65,17 @@ the Digital-7 numerals (208 B).
 
 Captured headlessly by the simulator over a test library with scripted button
 presses — `ci/screens.script`, run by `ci/screens.sh` — 320×240 screens stored
-at 2× (640×480), one folder per theme in
+at 2× (640×480), one folder per palette in
 [docs/screens](docs/screens); how to make them is in
-[docs/DEVELOPING.md](docs/DEVELOPING.md). Each folder holds Home, Now Playing
-(playing, paused, with the volume readout), Cover Flow, the file browser and an
-album, the settings menu and a submenu, the System menu, System Status and the
-Battery Usage chart.
+[docs/DEVELOPING.md](docs/DEVELOPING.md). Only the two screens that show the
+design are kept, Home and Now Playing, in a dark palette and a light one; the
+other six (Nord, Gotham, Rose Pine, Tokyo Night, One Light, GitHub Light) share
+the layout.
 
-The eight palettes, one layout:
-
-| Dark | Light | Nord | Gotham |
-|---|---|---|---|
-| ![Home, Dark](docs/screens/dark/home.png) | ![Home, Light](docs/screens/light/home.png) | ![Home, Nord](docs/screens/nord/home.png) | ![Home, Gotham](docs/screens/gotham/home.png) |
-| ![Home, Rose Pine](docs/screens/rose-pine/home.png) | ![Home, Tokyo Night](docs/screens/tokyo-night/home.png) | ![Home, One Light](docs/screens/one-light/home.png) | ![Home, GitHub Light](docs/screens/github-light/home.png) |
-
-In detail (Dark):
-
-| | |
-|---|---|
-| ![Home menu](docs/screens/dark/home.png) *Home* | ![Now Playing while playing](docs/screens/dark/now-playing.png) *Now Playing* |
-| ![Now Playing, paused](docs/screens/dark/now-playing-paused.png) *Paused* | ![Now Playing with the volume readout](docs/screens/dark/now-playing-volume.png) *Volume readout* |
-| ![Cover Flow](docs/screens/dark/cover-flow.png) *Cover Flow* | ![File browser](docs/screens/dark/file-browser.png) *File browser* |
-| ![Settings menu](docs/screens/dark/settings.png) *Settings* | ![General settings submenu](docs/screens/dark/general-settings.png) *A submenu* |
-| ![System status screen](docs/screens/dark/system-status.png) *System status (System › System Status)* | ![Battery usage chart](docs/screens/dark/battery-usage.png) *Battery usage (System › View Battery Usage)* |
+| | Dark | Light |
+|---|---|---|
+| Home | ![Home, Dark](docs/screens/dark/home.png) | ![Home, Light](docs/screens/light/home.png) |
+| Now Playing | ![Now Playing, Dark](docs/screens/dark/now-playing.png) | ![Now Playing, Light](docs/screens/light/now-playing.png) |
 
 ## References
 

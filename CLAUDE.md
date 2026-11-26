@@ -73,8 +73,8 @@ commit gate (firmware zip + simulator install, no new warnings);
 `../newui-tools/simrun.sh <script> <shotdir>` runs the simulator headless from
 a key script and writes screenshots (see `uisimulator/common/sim_script.c`),
 and every screen is checked there before it goes on the device; `ci/screens.sh`
-(+ `ci/screens.script`, `ci/scale2x.py`) regenerates `docs/screens/` for all
-themes; `../newui-tools/loc.py [commit]` counts code lines. For pure cleanups,
+(+ `ci/screens.script`, `ci/scale2x.py`) regenerates `docs/screens/` — Home and
+Now Playing, in dark and light, `THEMES` for other palettes; `../newui-tools/loc.py [commit]` counts code lines. For pure cleanups,
 `mipsel-elf-size rockbox.elf` and the `.codec` sizes must be unchanged. Only the version string may differ. When running the script
 runner by hand, create the shot directory first: `RB_SHOTDIR` is written to
 with host `fopen`, and the sim just prints "cannot write" if it is missing.

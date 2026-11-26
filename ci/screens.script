@@ -1,84 +1,21 @@
 # Screenshots for docs/screens (see ci/screens.sh and docs/DEVELOPING.md).
-# Boots, walks every screen and writes one PNG per screen. Commands:
+# Two palettes, the two screens the README shows: Home, then Now Playing with a
+# real track and its cover. Commands:
 # wait <ms> | press <button> | hold <button> <ms> | wheel fwd|back <ticks> |
 # shot <name> | quit   (uisimulator/common/sim_script.c)
-# The theme comes from simdisk/.rockbox/config.cfg ("theme: nord").
+# The palette comes from simdisk/.rockbox/config.cfg ("theme: nord").
 
-wait 2500             # the splash, faded in and holding
-shot splash
-wait 1500             # ... the hold ends, Home is up
+wait 4000            # the boot splash fades in and holds, then Home is up
 shot home
 
-press play            # resume playback -> Now Playing
-wait 3000
-shot now-playing
-press play            # pause
-wait 1000
-shot now-playing-paused
-press volup
+wheel fwd 2          # Files
+wait 600
+press play           # music/
 wait 800
-shot now-playing-volume
-press play            # resume
-wait 1000
-press back
-wait 1500
-
-wheel fwd 2           # Cover Flow
-wait 500
-press play
-wait 3000
-shot cover-flow
-press back
-wait 1500
-
-wheel fwd 1           # Files
-wait 500
-press play
-wait 1500
-shot file-browser
-press play            # music/
-wait 1500
-shot music-folder
-press play            # album2/
-wait 1500
-shot album-tracks
-press back
-press back
-press back
-wait 2000
-
-wheel fwd 3           # Settings (Home still selects Files)
-wait 500
-press play
-wait 1500
-shot settings
-wheel fwd 2           # General Settings
-wait 500
-press play
-wait 1500
-shot general-settings
-press back
-press back
-wait 2000
-
-wheel fwd 1           # System (Home still selects Settings)
-wait 500
-press play
-wait 1500
-shot system-menu
-wheel fwd 3           # System Status
-wait 500
-press play
-wait 2500
-shot system-status
-press back
-wait 1500
-wheel back 1          # View Battery Usage
-wait 500
-press play
-wait 2500
-shot battery-usage
-press back
-wait 1500
+press play           # album2/
+wait 800
+press play           # track2.mp3 -> playback starts, Now Playing is up
+wait 4000            # give the cover time to decode and the bar to move
+shot now-playing
 
 quit
