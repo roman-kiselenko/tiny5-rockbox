@@ -8,6 +8,7 @@
 #
 
 # Usage: version.sh [source-root]
+#        version.sh --release [source-root]
 
 # Prints the revision of the repository.
 #
@@ -36,6 +37,34 @@ gitversion() {
 }
 
 #
+# The release tag a build belongs to, printed by "version.sh --release":
+# the tag HEAD is on, otherwise the release the tree is heading to (the top
+# row of the table in docs/RELEASE_NOTES.md), otherwise the nearest tag.
+# Prints nothing when the tree has no tags at all.
+releasetag() {
+    if [ -n "$1" ]; then TOP=$1; else TOP=..; fi
+
+    # Exactly on a release tag: that is the version.
+    tag=`git -C "$TOP" describe --tags --match 'v[0-9]*' --exact-match 2>/dev/null`
+    case "$tag" in
+        v[0-9]*) echo "$tag"; return ;;
+    esac
+
+    # Otherwise the release the notes say is next.
+    notes="$TOP/docs/RELEASE_NOTES.md"
+    if [ -r "$notes" ]; then
+        tag=`sed -n 's/^| *\[\(v[0-9][0-9.]*\)\].*/\1/p' "$notes" | head -1`
+        if [ -n "$tag" ]; then echo "$tag"; return; fi
+    fi
+
+    git -C "$TOP" describe --tags --match 'v[0-9]*' --abbrev=0 2>/dev/null
+}
+
+if [ "$1" = "--release" ]; then
+    releasetag "$2"
+    exit
+fi
+
 # First locate the top of the src tree (passed in usually)
 #
 if [ -n "$1" ]; then TOP=$1; else TOP=..; fi

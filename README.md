@@ -21,7 +21,7 @@ cannot build bootloaders.
 **Install.** Take the archive from the
 [releases](https://github.com/roman-kiselenko/tiny5-rockbox/releases) and unzip
 it to the root of the SD card — it contains the `.rockbox` folder. Unzipping
-over an existing install (`unzip -o rockbox-h2-vX.Y.Z.zip -d /path/to/sdcard`)
+over an existing install (`unzip -o rockbox-vX.Y.Z.zip -d /path/to/sdcard`)
 keeps your settings and Bluetooth pairings, because `.rockbox/config.cfg`,
 `bt_config.conf` and `bt_devices.txt` are not in the archive. The archive is
 about 2.6 MB: firmware, codecs and the two UI fonts, Tiny5 Mono (452 KB) and

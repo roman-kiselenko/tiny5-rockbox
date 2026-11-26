@@ -58,7 +58,9 @@ endif
 # in the shell function (but are in recipe). Thus we need to explicitely pass
 # the VERSION environement variable
 SVNVERSION:=$(shell VERSION='$(VERSION)' $(TOOLSDIR)/version.sh $(ROOTDIR))
+RELEASETAG:=$(shell $(TOOLSDIR)/version.sh --release $(ROOTDIR))
 OLDSVNVERSION:=$(shell grep 'RBVERSION' $(BUILDDIR)/rbversion.h 2>/dev/null|cut -d '"' -f 2 || echo "NOREVISION")
+OLDRELEASETAG:=$(shell grep 'RBRELEASE' $(BUILDDIR)/rbversion.h 2>/dev/null|cut -d '"' -f 2 || echo "NOTAG")
 
 CORE_LIBS:=$(FIRMLIB)
 
@@ -66,5 +68,9 @@ ifneq ($(SVNVERSION),$(OLDSVNVERSION))
 .PHONY: $(BUILDDIR)/rbversion.h
 endif
 
+ifneq ($(RELEASETAG),$(OLDRELEASETAG))
+.PHONY: $(BUILDDIR)/rbversion.h
+endif
+
 $(BUILDDIR)/rbversion.h:
-	$(call PRINTS,GEN $(@F))$(TOOLSDIR)/genversion.sh $(BUILDDIR) $(SVNVERSION)
+	$(call PRINTS,GEN $(@F))$(TOOLSDIR)/genversion.sh $(BUILDDIR) $(SVNVERSION) $(RELEASETAG)

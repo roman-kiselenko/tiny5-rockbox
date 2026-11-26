@@ -15,8 +15,9 @@ separated by colour only, the way a terminal does it.
 ## Screens
 
 - **Boot**: the Rockbox icon, cut from the logo's outline, fades in over 2 s in
-  the bottom-left corner at half the screen height, the firmware version in the
-  row above it; it holds a second before the first screen.
+  the bottom-left corner at half the screen height; the two rows above it read
+  `Rockbox: <build revision>` and, in grey, `Tiny5 UI: v0.0.3` — the release tag
+  the tree is tagged with. It holds a second before the first screen.
 - **Home** is the root screen: Now Playing (or resume), Music (the tag
   database), Cover Flow, Files, Playlists, Bluetooth, Settings, System. Along
   the bottom edge, in grey, the music database: its number of tracks and their

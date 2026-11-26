@@ -296,8 +296,11 @@ perspective texture mapping, a reflection under them, album and artist below.
   becomes `apps/newui/logo_geometry.h` (9 painted paths, 17 rings, 570 points,
   each path with its own fill - black, yellow, the grey-blue rock). At half the
   screen height (120 px) it sits in the bottom-left corner and fades in,
-  opacity 0 to 1 easing over 2 s; the firmware version is the row above it.
-  The 230 KB boot bitmap is gone.
+  opacity 0 to 1 easing over 2 s; the two rows above it are the Rockbox build
+  revision and, in grey, the Tiny5 release tag. `tools/version.sh --release`
+  resolves the tag — HEAD's tag on a release build, otherwise the release the
+  notes table says is next — and it reaches the code as `RBRELEASE` in
+  `rbversion.h`. The 230 KB boot bitmap is gone.
 - Missing covers are built in the background while nothing moves, the visible
   ones first, then outwards from the centre. While the covers are moving only a
   couple are read per frame (one while music plays), and all this work pauses
@@ -370,7 +373,7 @@ gone — Bluetooth is a Home item.
 | Lock screen | Power locks the keys and blanks the display from any screen; the lock screen shows the clock, the date and the playing track as text, centred. Power or double-press Centre unlocks |
 | Text entry | Wheel-driven character strip, text in a field at the top |
 | USB connected | Full-width status bar, USB glyph, "Connected", battery |
-| Boot / shutdown | The Rockbox icon, code-drawn from the logo, faded in bottom-left with the version / "Goodbye" |
+| Boot / shutdown | The Rockbox icon, code-drawn from the logo, faded in bottom-left with the Rockbox revision and the Tiny5 tag / "Goodbye" |
 | Splash, yes/no, database progress | The rounded panel of §4.6 |
 
 ---

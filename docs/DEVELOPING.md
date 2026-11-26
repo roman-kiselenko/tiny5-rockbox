@@ -131,14 +131,15 @@ that is how `docs/screens/` is produced.
 
 Pushing a tag `vX.Y.Z` (or running it from the Actions tab with a tag input)
 runs `.github/workflows/release.yml`: it builds `--type=n`, renames
-`rockbox.zip` to `rockbox-h2-vX.Y.Z.zip` and uploads it to the tag's release,
-creating the release if the tag has none. The description comes from
+`rockbox.zip` to `rockbox-vX.Y.Z.zip` and uploads it to the tag's release,
+creating the release if the tag has none (the `rockbox-h2-` prefix was dropped
+from v0.0.3). The description comes from
 **`docs/releases/<tag>.md`** — one notes file per tag, listed in
 [RELEASE_NOTES.md](RELEASE_NOTES.md). A description typed by hand is left alone;
 the workflow only rewrites a body that is empty or that it wrote itself. Write
-the notes before tagging, since the workflow checks out the tag. The release
-build runs `VERSION="$TAG" make`, so `rbversion.h` — and the version the player
-shows — is the tag rather than `rNNNNNNNNNN-YYMMDD`.
+the notes before tagging, since the workflow checks out the tag. The build keeps
+its plain revision string (`rNNNNNNNNNN-YYMMDD`): the tag is carried separately as
+`RBRELEASE` and appears on the splash as `Tiny5 UI: vX.Y.Z`.
 
 `.github/workflows/ci.yml` builds firmware, simulator and warble on every push
 to `master`; the simulator smoke test is `ci/smoke.script`, and its screenshots

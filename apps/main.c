@@ -185,17 +185,26 @@ int main(void)
 static long logo_tick; /* when the splash started to fade in */
 
 /* The splash is the Rockbox icon, cut from the logo's outline (see
- * ui_mark.c): half the screen height, in the bottom-left corner, with the
- * firmware version in the row above it. */
+ * ui_mark.c): half the screen height, in the bottom-left corner, with the two
+ * version lines in the rows above it — the Rockbox build revision, then the
+ * Tiny5 release tag this tree is tagged with. */
 #define SPLASH_SIZE (MIN(LCD_WIDTH, LCD_HEIGHT) / 2) /* the icon is square */
 #define SPLASH_X    UI_MARGIN
 #define SPLASH_Y    (LCD_HEIGHT - UI_MARGIN - SPLASH_SIZE)
-#define SPLASH_VER  (SPLASH_Y - UI_ROW_H)            /* the row above it */
+#define SPLASH_VER  (SPLASH_Y - 2 * UI_ROW_H)        /* Rockbox, then the tag */
+#define SPLASH_TAG  (SPLASH_VER + UI_ROW_H)          /* Tiny5 UI: <tag> */
 #define SPLASH_FADE (2 * HZ)                        /* the fade lasts 2 s */
 #define SPLASH_HOLD HZ                             /* ... then it holds 1 s */
 
-/* The splash at opacity alpha, 0..256: the page colour, the mark, the
- * version. Nothing else is on screen while booting, so the whole page is
+/* The release tag this build belongs to, from tools/version.sh --release:
+ * HEAD's tag, or the release the notes table says is next. Empty when the tree
+ * has no tags at all, in which case only the Rockbox line is drawn. */
+#ifndef RBRELEASE
+#define RBRELEASE ""
+#endif
+
+/* The splash at opacity alpha, 0..256: the page colour, the mark, the two
+ * version lines. Nothing else is on screen while booting, so the whole page is
  * repainted on every frame of the fade. */
 static void splash_draw(int alpha) INIT_ATTR;
 static void splash_draw(int alpha)
@@ -205,10 +214,14 @@ static void splash_draw(int alpha)
     lcd_set_viewport(NULL);
     ui_fill_rect(0, 0, LCD_WIDTH, LCD_HEIGHT, UI_COL_BG);
     ui_logo_draw(SPLASH_X, SPLASH_Y, SPLASH_SIZE, alpha);
-    /* the version fades with the mark */
+    /* both lines fade with the mark */
     ui_text(SPLASH_X, SPLASH_VER, UI_FONT_ROW,
             ui_mix(UI_COL_BG, UI_COL_TEXT, alpha),
-            "Rockbox " RBVERSION, LCD_WIDTH - 2 * UI_MARGIN, -1);
+            "Rockbox: " RBVERSION, LCD_WIDTH - 2 * UI_MARGIN, -1);
+    if (RBRELEASE[0])
+        ui_text(SPLASH_X, SPLASH_TAG, UI_FONT_ROW,
+                ui_mix(UI_COL_BG, UI_COL_MUTED, alpha),
+                "Tiny5 UI: " RBRELEASE, LCD_WIDTH - 2 * UI_MARGIN, -1);
     lcd_update();
 }
 

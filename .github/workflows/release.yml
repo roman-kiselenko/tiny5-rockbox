@@ -113,12 +113,12 @@ jobs:
           mkdir -p build
           cd build
           ../tools/configure --target=erosqnative --type=n
-          # VERSION makes tools/version.sh report the tag instead of the
-          # rNNNNNNNNNN-YYMMDD string a normal build gets, so the firmware
-          # says v0.0.3 rather than its commit.
-          VERSION="$TAG" make -j"$(nproc)"
+          # No VERSION override: the "Rockbox:" line on the splash is the build
+          # revision, and the tag it was cut from is the separate "Tiny5 UI:"
+          # line (RBRELEASE, from tools/version.sh --release).
+          make -j"$(nproc)"
           make zip
-          grep RBVERSION rbversion.h
+          grep -E 'RBVERSION|RBRELEASE' rbversion.h
 
       - name: Check the archive
         run: |

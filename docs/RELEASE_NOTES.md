@@ -24,8 +24,8 @@ git tag v0.0.4 && git push origin v0.0.4
 ```
 
 Pushing the tag runs `.github/workflows/release.yml`: it builds `--type=n`,
-renames `rockbox.zip` to `rockbox-h2-v0.0.4.zip`, creates the release if the tag
-has none (title "H2 Rockbox v0.0.4", the notes file as the description), uploads
+renames `rockbox.zip` to `rockbox-v0.0.4.zip`, creates the release if the tag
+has none (title "Rockbox Tiny5 v0.0.4", the notes file as the description), uploads
 the archive, and prints its sha256. A release you made by hand keeps its own
 description — the workflow only rewrites a body that is empty or that it wrote
 itself. A tag with a `-` (e.g. `v0.0.4-rc1`) is published as a prerelease.

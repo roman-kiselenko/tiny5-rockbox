@@ -156,11 +156,17 @@ Usage (`apps/newui/scr_battery.c`).
 
 Pushing a tag `vX.Y.Z` (or running it from the Actions tab with a tag input)
 triggers `.github/workflows/release.yml`: it builds `--type=n`, renames
-`rockbox.zip` to **`rockbox-h2-vX.Y.Z.zip`**, and uploads it to the tag's
-release, creating the release if the tag has none. **Each tag has its own notes
+`rockbox.zip` to **`rockbox-vX.Y.Z.zip`** (the `h2` prefix was dropped from
+v0.0.3), and uploads it to the tag's release, creating the release if the tag
+has none. **Each tag has its own notes
 file**, `docs/releases/<tag>.md`, which becomes that release's description;
 `docs/RELEASE_NOTES.md` indexes them. Write the notes before the tag (the
-workflow checks out the tag). The next release is **v0.0.3**.
+workflow checks out the tag). The next release is **v0.0.3**. The splash prints two
+versions: the Rockbox build revision (`RBVERSION`) and, in grey, the repository
+tag as `Tiny5 UI: vX.Y.Z`. `tools/version.sh --release` resolves the tag (HEAD's
+tag, or the release the RELEASE_NOTES table says is next) and `genversion.sh`
+writes it to `rbversion.h` as `RBRELEASE`; the release workflow no longer
+overrides `VERSION`, so the two lines stay distinct.
 `.github/workflows/ci.yml` builds firmware + simulator + warble on every push
 to `master`; the simulator smoke test is `ci/smoke.script`, and its screenshots
 are uploaded as the `sim-screenshots` artifact.
@@ -215,8 +221,9 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
      per size so list rows redraw cheaply. The same file draws the boot
      splash from `docs/logo/rockbox-icon.svg` (`logo_geometry.h`,
      `ui_logo_draw`): the icon at half the screen height in the bottom-left
-     corner, faded in over 2 s with the firmware version above it — the 230 KB
-     boot bitmap is gone.
+     corner, faded in over 2 s with two rows above it: `Rockbox:` the build
+     revision and, in grey, `Tiny5 UI:` the repository tag — the 230 KB boot
+     bitmap is gone.
    - Decoding JPEGs while scrolling is too slow on the X1000: covers are
      decoded once and saved pre-scaled on the card
      (`/.rockbox/newui/thumbs`, 48 px for list rows = `UI_THUMB`, 150 px for
