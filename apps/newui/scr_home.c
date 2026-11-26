@@ -231,9 +231,9 @@ static void db_line(struct viewport *vp, int rows_bottom)
     db_readout(db_text, sizeof db_text);
 
     if (rows_bottom <= vp->height - UI_ROW_H)
-        ui_text_num_vcenter(UI_MARGIN, vp->height - UI_ROW_H, UI_ROW_H,
-                            ui_font(UI_FONT_ROW), UI_COL_TEXT2, db_text,
-                            vp->width - 2 * UI_MARGIN, -1);
+        ui_text_vcenter(UI_MARGIN, vp->height - UI_ROW_H, UI_ROW_H,
+                        ui_font(UI_FONT_ROW), UI_COL_TEXT2, db_text,
+                        vp->width - 2 * UI_MARGIN, -1);
 }
 
 /* Should Home redraw because the readout changed under it? */

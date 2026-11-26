@@ -84,25 +84,13 @@ cc -O2 -o /tmp/convbdf tools/convbdf.c
 `tools/convttf` reads a TrueType font with FreeType (needs libfreetype-dev) and
 is what `fonts/newui/mkfonts.sh` uses for the CJK faces.
 
-Where FreeType is not available, **`tools/ttf2bdf.py`** rasterises a TrueType
-font with the stdlib only: it reads `glyf`/`loca`/`cmap`, decodes the outline
-contours, fills them at 4× the target size (so thin features survive) and
-writes X11 BDF, which `convbdf` then rotates into Rockbox's bitmap format. The
-seven-segment numeric face comes from it:
-
-```bash
-python3 tools/ttf2bdf.py -c '0123456789:-' -p 9 -W 6 -A 9 -D 0 \
-    -o fonts/newui/09-Digital7.bdf fonts/newui/digital-7-mono.ttf
-/tmp/convbdf -f fonts/newui/09-Digital7.bdf      # -> fonts/newui/09-Digital7.fnt
-```
-
-Both are committed, so a build needs no conversion step. The name is the glyph
-height in pixels, per the rules in [fonts/README](../fonts/README).
+The UI font is committed, so a build needs no conversion step. The name is the
+glyph height in pixels, per the rules in [fonts/README](../fonts/README).
 
 ## Marks from the logo
 
 The clef that stands for an album with no cover and the boot splash are drawn,
-not blitted. `tools/svg2poly.py` (stdlib only, like `ttf2bdf.py`) flattens the
+not blitted. `tools/svg2poly.py` (stdlib only) flattens the
 SVG paths in `docs/logo` into polygons, normalises them into a 1024 box and
 prints the geometry the tree ships:
 

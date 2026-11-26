@@ -29,17 +29,13 @@
  * installed by buildzip from fonts/newui. Glyphs load from the card on
  * demand into the font's cache, so the file's size costs disk, not RAM.
  * Five slots point at the same file: keeping the enum lets the sizes diverge
- * again later (see fonts/newui/mkfonts.sh for upscaled faces). The exception
- * is UI_FONT_NUM, Digital-7: a seven-segment face for the digits, ':' and
- * '-' of times and counts only, rasterised from Sizenko Alexander's TTF by
- * tools/ttf2bdf.py; its licence is in fonts/newui/LICENSE-Digital7.txt. */
+ * again later (see fonts/newui/mkfonts.sh for upscaled faces). */
 static const char * const font_files[UI_FONT_COUNT] = {
     [UI_FONT_SMALL] = FONT_DIR "/08-Tiny5Mono.fnt",
     [UI_FONT_BODY]  = FONT_DIR "/08-Tiny5Mono.fnt",
     [UI_FONT_ROW]   = FONT_DIR "/08-Tiny5Mono.fnt",
     [UI_FONT_TITLE] = FONT_DIR "/08-Tiny5Mono.fnt",
     [UI_FONT_BIG]   = FONT_DIR "/08-Tiny5Mono.fnt",
-    [UI_FONT_NUM]   = FONT_DIR "/09-Digital7.fnt",
 };
 
 static int font_ids[UI_FONT_COUNT];

@@ -24,8 +24,7 @@ it to the root of the SD card — it contains the `.rockbox` folder. Unzipping
 over an existing install (`unzip -o rockbox-vX.Y.Z.zip -d /path/to/sdcard`)
 keeps your settings and Bluetooth pairings, because `.rockbox/config.cfg`,
 `bt_config.conf` and `bt_devices.txt` are not in the archive. The archive is
-about 2.6 MB: firmware, codecs and the two UI fonts, Tiny5 Mono (452 KB) and
-the Digital-7 numerals (208 B).
+about 2.6 MB: firmware, codecs and the UI font, Tiny5 Mono (452 KB).
 
 ## Features
 
@@ -56,8 +55,8 @@ the Digital-7 numerals (208 B).
 - **Cut down to one player.** No other targets, no plugins, no voice, no theme
   engine, no game-music codecs. The core is about 296k lines against roughly
   1.6M upstream. → [docs/CUT-DOWN.md](docs/CUT-DOWN.md)
-- **Fonts.** Tiny5 Mono, with seven-segment **Digital-7** numerals for times
-  and counts — the clock, the battery, track lengths. Latin, Greek, Cyrillic
+- **Fonts.** Tiny5 Mono for every slot of the UI — the clock, the battery,
+  track lengths, all of it. Latin, Greek, Cyrillic
   and IPA. CJK is deferred, not dropped — `fonts/newui/mkfonts.sh` is kept as
   the seed for a Chinese/Japanese/Korean build. → [docs/INTERFACE.md](docs/INTERFACE.md)
 
@@ -95,10 +94,8 @@ What this project is built from:
   H4) with its patchram firmware in `BCM4343A1_*.c`.
 - **Tiny5 Mono** by [Gissio](https://github.com/Gissio/font_Tiny5Mono), SIL
   Open Font License 1.1 ([fonts/COPYING](fonts/COPYING)) — the UI font.
-- **Digital-7 Mono** by Sizenko Alexander (Style-7, 2008) — the seven-segment
-  numerals; freeware, see `fonts/newui/LICENSE-Digital7.txt`.
-- **Noto Sans CJK** (SIL OFL 1.1, `fonts/newui/LICENSE-NotoSansCJK.txt`) — the
-  deferred CJK faces, no longer installed.
+- **Noto Sans CJK** (SIL OFL 1.1) — the deferred CJK faces; they are not in
+  the tree and are no longer installed.
 - **Rockbox Utility** — the official way to put the Rockbox bootloader on the
   player.
 

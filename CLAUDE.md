@@ -45,11 +45,8 @@ Other build types still supported: `--type=w` (warble codec test tool),
 MIPS (also broken upstream).
 
 The UI's font is committed as `.fnt` (`fonts/newui/08-Tiny5Mono.fnt`, from
-`08-Tiny5Mono.bdf` via `convbdf`), so a normal build needs no FreeType. Times
-and counts use a second committed face, `fonts/newui/09-Digital7.fnt` (Digital-7,
-seven-segment, 208 bytes), generated from `digital-7-mono.ttf` by the stdlib-only
-`tools/ttf2bdf.py` and then `convbdf`; `ui_text_num()` in `apps/newui/ui_draw.c`
-picks it for runs of `0-9`, `:` and `-`. The Noto CJK faces are not committed;
+`08-Tiny5Mono.bdf` via `convbdf`), so a normal build needs no FreeType. It is
+the only face the UI draws with. The Noto CJK faces are not committed;
 `make -C tools convttf` (needs libfreetype-dev) plus `fonts/newui/mkfonts.sh`
 generates them when a CJK build is started.
 
@@ -60,8 +57,7 @@ Install on the player: unzip `rockbox.zip` to the SD card root (it contains
 `.rockbox/`). The owner's card keeps settings and Bluetooth pairings in
 `.rockbox/` (`config.cfg`, `bt_config.conf`, `bt_devices.txt`): unzip over the
 existing folder (`unzip -o`) and check those files are unchanged. The archive
-is ~2.6 MB: firmware, codecs, Tiny5 Mono (452 KB) and the Digital-7 numerals
-(208 B). An older install still
+is ~2.6 MB: firmware, codecs and Tiny5 Mono (452 KB). An older install still
 has `.rockbox/fonts/newui-*.fnt` on the card (the Noto CJK faces, 27 MB) — they
 are no longer installed and can be deleted.
 
@@ -192,10 +188,8 @@ how it differs from the original plan — is in `docs/newui/PLAN.md`.
 3. **Font: Tiny5 Mono** (9 px, SIL OFL 1.1,
    https://github.com/Gissio/font_Tiny5Mono) for every UI slot; rows are 16 px,
    art rows 48 px, two-line rows 24 px, status bar 22 px. Latin, Greek,
-   Cyrillic and IPA only. `UI_FONT_NUM` is the exception: Digital-7 seven-segment
-   numerals, digits/`:`/`-` only, for times and counts.
-4. **CJK is deferred, not dropped.** Tiny5 Mono and the Digital-7 numerals are
-   the only fonts installed. `fonts/newui/mkfonts.sh` (with `tools/convttf`) is kept
+   Cyrillic and IPA only.
+4. **CJK is deferred, not dropped.** Tiny5 Mono is the only font installed. `fonts/newui/mkfonts.sh` (with `tools/convttf`) is kept
    as the seed for a Chinese/Japanese/Korean build; the Noto faces themselves are
    no longer in the tree.
 5. **Cover Flow over the music database.**

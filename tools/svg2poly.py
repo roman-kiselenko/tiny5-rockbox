@@ -18,7 +18,7 @@ A path's rings are filled together (a ring inside another is a hole), and
 paths are layered in document order, so a mark with several colours keeps
 its look. Paths without a fill are taken as black.
 
-Stdlib only, like tools/ttf2bdf.py. Options:
+Stdlib only. Options:
     --grid N     normalisation box (default 1024)
     --tol U      curve subdivision tolerance in user units (default: one
                  GRID unit of the shape's larger side)

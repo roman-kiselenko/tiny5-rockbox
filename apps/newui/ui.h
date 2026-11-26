@@ -135,7 +135,6 @@ enum ui_font {
     UI_FONT_ROW,    /* list rows (also the default UI font) */
     UI_FONT_TITLE,  /* titles */
     UI_FONT_BIG,    /* fast-scroll letter, lock screen clock */
-    UI_FONT_NUM,    /* seven-segment digits: times and counts only */
     UI_FONT_COUNT
 };
 
@@ -199,14 +198,6 @@ int ui_text_y(int font, int y, int h);
 /* Same, vertically centred in the band [y, y + h) */
 int ui_text_vcenter(int x, int y, int h, int font, unsigned color,
                     const char *text, int max_w, int align);
-/* Like ui_text(), but runs of digits, ':' and '-' are drawn with the
- * seven-segment face (UI_FONT_NUM) and everything else with `font`. Widths
- * follow the same rule. */
-int ui_text_num_width(int font, const char *text);
-int ui_text_num(int x, int y, int font, unsigned color, const char *text,
-                int max_w, int align);
-int ui_text_num_vcenter(int x, int y, int h, int font, unsigned color,
-                        const char *text, int max_w, int align);
 
 /* --- readout lines of the playing track --- */
 #define UI_SEP " \xc2\xb7 "  /* between the parts of a readout line */

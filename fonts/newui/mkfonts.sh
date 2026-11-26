@@ -7,7 +7,7 @@
 #    committed, so a normal build converts nothing; convbdf needs no scaling,
 #    the font is used at its native size.
 #
-# 2. Noto Sans CJK JP (SIL OFL 1.1, see LICENSE-NotoSansCJK.txt) - Latin,
+# 2. Noto Sans CJK JP (SIL OFL 1.1) - Latin,
 #    Greek, Cyrillic and Chinese, Japanese and Korean (kana, Han in Japanese
 #    shapes, Hangul). The UI used these before Tiny5 and they are not
 #    committed any more: this part is the seed for a future

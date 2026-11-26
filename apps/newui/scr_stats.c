@@ -99,8 +99,8 @@ static int row(int y, const char *label, const char *value)
     const int font = ui_font(UI_FONT_ROW);
     ui_text_vcenter(UI_MARGIN, y, ST_LINE_H, font, UI_COL_MUTED, label,
                     ST_COL - UI_MARGIN, -1);
-    ui_text_num_vcenter(ST_COL, y, ST_LINE_H, font, UI_COL_TEXT, value,
-                        LCD_WIDTH - UI_MARGIN - ST_COL, -1);
+    ui_text_vcenter(ST_COL, y, ST_LINE_H, font, UI_COL_TEXT, value,
+                    LCD_WIDTH - UI_MARGIN - ST_COL, -1);
     return y + ST_LINE_H;
 }
 
@@ -127,7 +127,7 @@ static void draw(struct viewport *vp)
     else
         snprintf(pct, sizeof pct, "--%%");
 
-    const int pw = ui_text_num_width(font, pct);
+    const int pw = ui_text_width(font, pct);
     const int bx = ST_COL, bw = vp->width - UI_MARGIN - pw - 8 - ST_COL;
     ui_text_vcenter(UI_MARGIN, y, ST_LINE_H, font, UI_COL_MUTED, "CPU",
                     ST_COL - UI_MARGIN, -1);
@@ -136,8 +136,8 @@ static void draw(struct viewport *vp)
     if (busy > 0)
         ui_fill_rect(bx, y + (ST_LINE_H - ST_BAR_H) / 2, bw * busy / 100,
                      ST_BAR_H, ui_accent_highlight());
-    ui_text_num_vcenter(vp->width - UI_MARGIN - pw, y, ST_LINE_H, font,
-                        UI_COL_TEXT, pct, pw + 4, 1);
+    ui_text_vcenter(vp->width - UI_MARGIN - pw, y, ST_LINE_H, font,
+                    UI_COL_TEXT, pct, pw + 4, 1);
     y += ST_LINE_H;
 
     /* memory: the core pool is everything Rockbox allocates from; the

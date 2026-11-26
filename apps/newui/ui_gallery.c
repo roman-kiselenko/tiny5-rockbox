@@ -71,12 +71,6 @@ static void page_fonts(void)
         y += h + 6;
     }
 
-    /* the seven-segment face: only its digits, ':' and '-' are drawn in it,
-       the rest of the line is Tiny5 — exactly how ui_text_num behaves */
-    ui_text_num(UI_MARGIN, y, ui_font(UI_FONT_ROW), UI_COL_TEXT,
-                "Num 9 " UTF8_EMDASH " 0:15  -6:05  3 of 12", 0, -1);
-    y += 9 + 6;
-
     lcd_setfont(ui_font(UI_FONT_BODY));
     lcd_set_foreground(UI_COL_TEXT2);
     lcd_putsxy(UI_MARGIN, y, UTF8_LQUOTE "Wish You Were Here" UTF8_RQUOTE UTF8_ELLIPSIS);

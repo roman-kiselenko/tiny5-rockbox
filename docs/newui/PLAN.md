@@ -138,13 +138,6 @@ SIL OFL 1.1, 9 px tall, 7 px ascent, 5 px cap height, 6 px per character. `ui_fo
 at the same face today; the enum stays so the sizes can diverge later without
 touching the callers.
 
-The sixth slot, `UI_FONT_NUM`, is **Digital-7**, a 9 px seven-segment face for
-the digits, `:` and `-` of times and counts only: the status bar clock and
-battery, Now Playing's elapsed and remaining times, Cover Flow's track lengths,
-the lock-screen clock. `ui_text_num()` picks it for runs of those characters and
-leaves everything else Tiny5. It is committed as `fonts/newui/09-Digital7.fnt`
-(208 bytes), rasterised from the TTF by `tools/ttf2bdf.py` and `tools/convbdf`.
-
 The font is installed by `buildzip.pl` from `fonts/newui/`; glyph bitmaps are
 loaded from the card into the font cache on demand, so the file size costs disk
 space, not RAM. Icons are glyphs, not bitmaps: `⏵ ⏸ ⏹ ⏩ ⏪ ⏺ 🔒`, `BT` for
@@ -234,8 +227,8 @@ The start screen: full-width rows, `UI_ROW_H`, same pitch as every other list.
 ```
 
 Along the bottom edge, in the theme's secondary grey, the music database: how
-many tracks it holds and their total playing time (`1246 tracks · 41 h 12 min`,
-the numbers in the seven-segment face). The total is summed from the database
+many tracks it holds and their total playing time (`1246 tracks · 41 h 12 min`).
+The total is summed from the database
 once and cached, rescanned when the database is rescanned or rebuilt, and Home
 refreshes the line as a build finishes. While the database is not searchable the
 ready yet [3/12]`), and when it holds nothing, `No music in the database`.
