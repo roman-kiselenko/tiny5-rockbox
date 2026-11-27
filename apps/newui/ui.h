@@ -141,6 +141,9 @@ enum ui_font {
 /* Loads the fonts once, at the end of boot; safe to call again. Missing
  * fonts fall back to the system font, as does ui_font() before this. */
 void ui_font_init(void);
+/* Re-pins FONT_UI to the currently selected font family (call after the
+ * newui_font setting changes) */
+void ui_font_apply(void);
 /* Rockbox font id for one of the UI fonts */
 int ui_font(enum ui_font f);
 /* FONT_UI as the theme's actual UI font id; other ids unchanged */

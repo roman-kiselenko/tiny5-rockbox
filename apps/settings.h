@@ -411,6 +411,7 @@ struct user_settings
     int newui_theme;   /* new UI: 0 Dark, 1 Light, 2 Nord, 3 Gotham, 4 Rose Pine,
                         5 Tokyo Night, 6 One Light, 7 GitHub Light */
     int newui_style;   /* new UI selection: 0 Classic bar, 1 Minimal band */
+    int newui_font;    /* new UI: 0 Tiny5 Mono, 1 Source Code Pro */
     bool newui_clock;  /* status bar clock */
 
 
