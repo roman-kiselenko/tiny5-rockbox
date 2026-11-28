@@ -914,6 +914,9 @@ const struct settings_list settings[] = {
     CHOICE_SETTING(0, newui_style, LANG_NEWUI_STYLE, 0, "selection style",
                    "classic,minimal", NULL, 2,
                    ID2P(LANG_NEWUI_STYLE_CLASSIC), ID2P(LANG_NEWUI_STYLE_MINIMAL)),
+    CHOICE_SETTING(0, newui_font, LANG_NEWUI_FONT, 0, "font",
+                   "tiny5,kodemono", NULL, 2,
+                   ID2P(LANG_NEWUI_FONT_TINY5), ID2P(LANG_NEWUI_FONT_KODEMONO)),
     OFFON_SETTING(0, newui_clock, LANG_NEWUI_CLOCK, true, "status bar clock", NULL),
     /* system */
     INT_SETTING(F_TIME_SETTING, poweroff, LANG_POWEROFF_IDLE, 10,

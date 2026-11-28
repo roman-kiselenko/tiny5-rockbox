@@ -37,6 +37,7 @@
 #include "viewport.h"
 #include "statusbar.h" /* statusbar_vals enum*/
 #include "rbunicode.h"
+#include "newui/ui.h"  /* new UI font selection */
 
 static int selectivebacklight_callback(int action,
                                        const struct menu_item_ex *this_item,
@@ -366,14 +367,39 @@ static int codepage_callback(int action,
 
 MENUITEM_SETTING(codepage_setting, &global_settings.default_codepage, codepage_callback);
 
+/* Re-applies the new UI font when the user changes it in the menu, so the
+ * screens that resolved FONT_UI keep the newly chosen face */
+static int newui_font_callback(int action,
+                               const struct menu_item_ex *this_item,
+                               struct gui_synclist *this_list)
+{
+    (void)this_item;
+    (void)this_list;
+    static int old_font;
+    int new_font = global_settings.newui_font;
+    switch (action)
+    {
+        case ACTION_ENTER_MENUITEM:
+            old_font = new_font;
+            break;
+        case ACTION_EXIT_MENUITEM:
+            if (new_font != old_font)
+                ui_font_apply();
+            break;
+    }
+    return action;
+}
+
 /* new UI: look */
 MENUITEM_SETTING(newui_theme, &global_settings.newui_theme, NULL);
 MENUITEM_SETTING(newui_style, &global_settings.newui_style, NULL);
+MENUITEM_SETTING(newui_font, &global_settings.newui_font, newui_font_callback);
 MENUITEM_SETTING(newui_clock, &global_settings.newui_clock, NULL);
 
 MAKE_MENU(display_menu, ID2P(LANG_DISPLAY),
             NULL, Icon_Display_menu,
-            &newui_theme, &newui_style, &newui_clock,
+            &newui_theme, &newui_style, &newui_font,
+            &newui_clock,
             &lcd_settings,
             &scroll_settings_menu,
             &peak_meter_menu,

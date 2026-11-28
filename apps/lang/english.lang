@@ -17711,6 +17711,34 @@
   </voice>
 </phrase>
 <phrase>
+  id: LANG_NEWUI_FONT
+  desc: new UI: Display setting, the UI font
+  user: core
+  <source>
+    *: "Font"
+  </source>
+  <dest>
+    *: "Font"
+  </dest>
+  <voice>
+    *: "Font"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEWUI_FONT_TINY5
+  desc: new UI: font, the 9 px pixel font
+  user: core
+  <source>
+    *: "Tiny5 Mono"
+  </source>
+  <dest>
+    *: "Tiny5 Mono"
+  </dest>
+  <voice>
+    *: "Tiny5 Mono"
+  </voice>
+</phrase>
+<phrase>
   id: LANG_NEWUI_CLOCK
   desc: new UI: Display setting, the status bar clock
   user: core
@@ -17974,5 +18002,19 @@
   </dest>
   <voice>
     *: "Skip Startup Animation"
+  </voice>
+</phrase>
+<phrase>
+  id: LANG_NEWUI_FONT_KODEMONO
+  desc: new UI: font, Kode Mono Regular
+  user: core
+  <source>
+    *: "Kode Mono Regular"
+  </source>
+  <dest>
+    *: "Kode Mono Regular"
+  </dest>
+  <voice>
+    *: "Kode Mono Regular"
   </voice>
 </phrase>

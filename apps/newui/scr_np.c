@@ -60,7 +60,8 @@
 #include "language.h"
 #include "ui.h"
 
-#define NP_LINE_H      UI_LINE_H     /* one line of the readout */
+#define NP_LINE_H      (UI_LINE_H + 4)  /* one line of the readout, with a
+                                           little air between the lines */
 #define NPL_BAND_Y     (LCD_HEIGHT - UI_STATUS_H - 42) /* rule + progress */
 #define NPL_BAR_H      8
 #define OVERLAY_TICKS  (HZ * 3 / 2)
