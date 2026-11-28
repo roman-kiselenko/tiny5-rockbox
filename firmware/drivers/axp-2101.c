@@ -471,8 +471,18 @@ void axp2101_adc_set_enabled(int adc_bits)
 int axp2101_egauge_read(void)
 {
     uint8_t buf;
-    i2c_reg_read(AXP_PMU_BUS, AXP_PMU_ADDR, AXP2101_REG_BATT_PERCENTAGE, 1, &buf);
-    return (int)buf;
+    /* Retry on a failed transfer. A transient I2C NACK leaves buf untouched,
+     * so without this check we would report a random byte in 0..255 as the
+     * battery percentage, making the readout and the battery-usage chart jump
+     * around between polls. On persistent failure, signal -1 so the caller
+     * falls back to the (filtered) voltage-based estimate instead. */
+    for (int i = 0; i < 3; i++) {
+        int rc = i2c_reg_read(AXP_PMU_BUS, AXP_PMU_ADDR,
+                              AXP2101_REG_BATT_PERCENTAGE, 1, &buf);
+        if (rc == I2C_STATUS_OK)
+            return (int)buf;
+    }
+    return -1;
 }
 
 // there are many current settings:

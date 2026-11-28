@@ -6,7 +6,8 @@ there, it falls back to a generic description and says so in the log.
 
 | Tag | Date | What it is |
 |---|---|---|
-| [v0.0.3](releases/v0.0.3.md) | next | eight palettes, the accent picker gone, the rules gone, README split, screenshots per theme |
+| [v0.0.4](releases/v0.0.4.md) | next | a configurable UI font (Tiny5 Mono or Kode Mono), the steadier battery readout, roomier Now Playing |
+| [v0.0.3](releases/v0.0.3.md) | 26 Nov 2026 | eight palettes, the accent picker gone, the rules gone, README split, screenshots per theme |
 | [v0.0.2](releases/v0.0.2.md) | 24 Nov 2026 | progressive JPEG covers, centred Now Playing readout, the release pipeline, CJK fonts no longer shipped |
 | [v0.0.1](releases/v0.0.1.md) | 23 Nov 2026 | the first packaged build of this tree |
 | [v1.1](releases/v1.1.md) | 27 Oct 2026 | the last release of the original H2 port this fork came from |
